@@ -14,7 +14,6 @@ import { ConfigService } from '@nestjs/config';
 import type { Response } from 'express';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
-import { RegisterDto } from './dto/register.dto';
 import { Get, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
@@ -31,11 +30,11 @@ export class AuthController {
     private readonly configService: ConfigService,
   ) {}
 
-  @Post('register')
-  @HttpCode(HttpStatus.CREATED)
-  register(@Body(validationPipe) input: RegisterDto) {
-    return this.authService.register(input);
-  }
+//   @Post('register')
+//   @HttpCode(HttpStatus.CREATED)
+//   register(@Body(validationPipe) input: RegisterDto) {
+//     return this.authService.register(input);
+//   }
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
@@ -109,7 +108,7 @@ export class AuthController {
   ) {
     return request.user;
   }
-  
+
   @Post('logout')
   @HttpCode(HttpStatus.NO_CONTENT)
   async logout(
