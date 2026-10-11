@@ -37,7 +37,6 @@ Implement registration, login, logout, and refresh-session rotation.
 - Unknown email and wrong password both return `401`.
 - Inactive user login returns `401`.
 
-
 ## Refresh and rotation
 
 - Read the refresh JWT from the HttpOnly `refresh_token` cookie.
@@ -50,7 +49,21 @@ Implement registration, login, logout, and refresh-session rotation.
 - Make rotation atomic so concurrent requests cannot both reuse the same active token.
 
 ### Verification
+
 - A valid refresh returns `200`, updates both cookies, and stores a new hash.
 - The previous refresh token cannot be used again.
 - Reuse of a revoked token revokes the active token in that family.
 - Invalid, expired, and inactive-user refresh attempts are rejected.
+
+## Logout
+
+- `POST /auth/logout` clears both auth cookies.
+- Revoke the active refresh-token family when a valid refresh cookie is present.
+- Logout is idempotent: missing, invalid, or already revoked refresh cookies still result in cleared cookies and a successful response.
+- Access tokens expire naturally; logout does not persist or return token values.
+
+### Verification
+
+- Logout clears both cookies.
+- Refresh after logout is rejected.
+- Repeating logout succeeds.

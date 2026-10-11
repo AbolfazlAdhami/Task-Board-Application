@@ -91,4 +91,28 @@ export class AuthController {
 
     return session.user;
   }
+
+  @Post('logout')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async logout(
+    @Req() request: Request,
+    @Res({ passthrough: true }) response: Response,
+  ): Promise<void> {
+    await this.authService.logout(request.cookies?.refresh_token);
+    const secure = this.configService.get('NODE_ENV') === 'production';
+
+    response.clearCookie('access_token', {
+      httpOnly: true,
+      secure,
+      sameSite: 'lax',
+      path: '/',
+    });
+
+    response.clearCookie('refresh_token', {
+      httpOnly: true,
+      secure,
+      sameSite: 'lax',
+      path: '/auth',
+    });
+  }
 }

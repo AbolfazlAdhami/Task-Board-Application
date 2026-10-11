@@ -258,4 +258,40 @@ export class AuthService {
 
     return session;
   }
+  async logout(refreshToken: string | undefined): Promise<void> {
+    if (!refreshToken) {
+      return;
+    }
+
+    let claims: RefreshClaims;
+
+    try {
+      claims = await this.jwtService.verifyAsync<RefreshClaims>(refreshToken, {
+        secret: this.configService.getOrThrow<string>('JWT_REFRESH_SECRET'),
+        ignoreExpiration: true,
+      });
+    } catch {
+      return;
+    }
+
+    const tokenHash = createHash('sha256').update(refreshToken).digest('hex');
+
+    await this.refreshTokensRepository.manager.transaction(async (manager) => {
+      const storedToken = await manager
+        .createQueryBuilder(RefreshTokenEntity, 'token')
+        .where('token.tokenHash = :tokenHash', { tokenHash })
+        .setLock('pessimistic_write')
+        .getOne();
+
+      if (!storedToken || storedToken.familyId !== claims.familyId) {
+        return;
+      }
+
+      await manager.update(
+        RefreshTokenEntity,
+        { familyId: storedToken.familyId, revokedAt: IsNull() },
+        { revokedAt: new Date() },
+      );
+    });
+  }
 }
