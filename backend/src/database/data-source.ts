@@ -2,6 +2,7 @@ import 'reflect-metadata';
 import { config } from 'dotenv';
 import { DataSource } from 'typeorm';
 import { UserEntity } from '../users/entities/user.entity/user.entity';
+import { RefreshTokenEntity } from '../auth/entities/refresh-token.entity/refresh-token.entity';
 
 config({ path: '../.env' });
 
@@ -18,7 +19,7 @@ export default new DataSource({
   username: required('POSTGRES_USER'),
   password: required('POSTGRES_PASSWORD'),
   database: required('POSTGRES_DB'),
-  entities: [UserEntity],
+  entities: [UserEntity, RefreshTokenEntity],
   migrations: [__dirname + '/migrations/*{.ts,.js}'],
   synchronize: false,
   migrationsRun: false,
