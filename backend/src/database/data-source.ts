@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 import { config } from 'dotenv';
 import { DataSource } from 'typeorm';
-import { UserEntity } from '../users/entities/user.entity/user.entity';
+import { UserEntity } from '../users/entities/user.entity';
 import { RefreshTokenEntity } from '../auth/entities/refresh-token.entity/refresh-token.entity';
 import { TodoEntity } from '../todos/entities/todo.entity/todo.entity';
 
@@ -12,7 +12,6 @@ const required = (name: string): string => {
   if (!value) throw new Error(`Missing environment variable: ${name}`);
   return value;
 };
-
 
 export default new DataSource({
   type: 'postgres',

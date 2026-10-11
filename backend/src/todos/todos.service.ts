@@ -1,7 +1,7 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { UserRole } from '../users/entities/user.entity/user.entity';
+import { UserRole } from '../users/entities/user.entity';
 import { CreateTodoDto } from './dto/create-todo.dto';
 import { TodoEntity } from './entities/todo.entity/todo.entity';
 
