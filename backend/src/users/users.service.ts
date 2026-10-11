@@ -12,7 +12,6 @@ import { RefreshTokenEntity } from '../auth/entities/refresh-token.entity/refres
 import { UserEntity, UserRole } from './entities/user.entity';
 import { AdminUpdateUserDto } from './dto/admin-update-user.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
-import { UpdateMyProfileDto } from './dto/update-my-profile.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 
 type PublicUser = {
@@ -75,7 +74,7 @@ export class UsersService {
 
     return this.toPublicUser(await this.usersRepository.save(user));
   }
-  
+
   findById(id: string): Promise<UserEntity | null> {
     return this.usersRepository.findOne({ where: { id } });
   }
@@ -90,27 +89,6 @@ export class UsersService {
     });
 
     return users.map((user) => this.toPublicUser(user));
-  }
-
-  async updateMyProfile(
-    id: string,
-    dto: UpdateMyProfileDto,
-  ): Promise<PublicUser> {
-    if (dto.email === undefined && dto.displayName === undefined) {
-      throw new BadRequestException('Provide at least one field to update');
-    }
-
-    const user = await this.getUserOrThrow(id);
-
-    if (dto.email !== undefined) {
-      user.email = await this.normalizeAndCheckEmail(dto.email, id);
-    }
-
-    if (dto.displayName !== undefined) {
-      user.displayName = dto.displayName.trim();
-    }
-
-    return this.toPublicUser(await this.usersRepository.save(user));
   }
 
   async changePassword(id: string, dto: ChangePasswordDto): Promise<void> {
