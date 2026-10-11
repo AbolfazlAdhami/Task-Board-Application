@@ -11,10 +11,10 @@ This is the staged execution plan for the hiring assignment. Complete the stages
 
 ## Stage 2 — Monorepo foundation
 
-- [ ] Create `frontend/` (Next.js App Router, TypeScript, Tailwind, Headless UI, TipTap) and `backend/` (NestJS, TypeORM).
+- [x] Create `frontend/` (Next.js App Router, TypeScript, Tailwind, Headless UI, TipTap) and `backend/` (NestJS, TypeORM).
 - [x] Add root package/workspace scripts and Node.js 24.15+ configuration.
-- [ ] Add Docker Compose for PostgreSQL and environment examples without secrets.
-- [ ] Add health checks and document local startup.
+- [x] Add Docker Compose for PostgreSQL and environment examples without secrets.
+- [x] Add health checks and document local startup.
 
 ## Stage 3 — Database model and migrations
 
