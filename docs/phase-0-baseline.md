@@ -1,6 +1,6 @@
 # Phase 0 — Scope and Architecture Baseline
 
-**Status:** Complete, based on the hiring assignment PDF.  
+**Status:** Complete, based on the hiring assignment PDF.
 **Purpose:** Freeze the requirements and boundaries that implementation phases must honor. This phase creates no application runtime code.
 
 ## Product scope
