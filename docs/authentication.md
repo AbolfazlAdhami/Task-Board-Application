@@ -67,3 +67,19 @@ Implement registration, login, logout, and refresh-session rotation.
 - Logout clears both cookies.
 - Refresh after logout is rejected.
 - Repeating logout succeeds.
+
+## Protecting API routes with access JWT
+
+- Passport validates access JWTs from the `access_token` HttpOnly cookie.
+- Use `JWT_ACCESS_SECRET` and reject invalid or expired tokens.
+- Refresh tokens must never authenticate API requests.
+- Attach the validated user (`id`, `email`, `role`) to the request.
+- Reject requests from inactive users, even when their access token is otherwise valid.
+- Protect routes with a reusable `JwtAuthGuard`; public auth routes remain accessible.
+
+### Verification
+
+- A valid access cookie reaches a protected route.
+- Missing, invalid, and expired access tokens return `401`.
+- A refresh token cannot authenticate a protected route.
+- An inactive user is rejected.

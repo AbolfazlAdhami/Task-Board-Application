@@ -3,15 +3,20 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { RefreshTokenEntity } from './entities/refresh-token.entity/refresh-token.entity';
+import { PassportModule } from '@nestjs/passport';
+
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { UsersModule } from '../users/users.module';
 import { durationToSeconds } from './auth.utils';
+import { JwtStrategy } from './strategies/jwt.strategy';
 
 @Module({
   imports: [
     ConfigModule,
+    PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -28,6 +33,7 @@ import { durationToSeconds } from './auth.utils';
     TypeOrmModule.forFeature([RefreshTokenEntity]),
   ],
   controllers: [AuthController],
-  providers: [AuthService],
+  providers: [AuthService, JwtStrategy, JwtAuthGuard],
+  exports: [JwtAuthGuard],
 })
 export class AuthModule {}

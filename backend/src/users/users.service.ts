@@ -34,4 +34,8 @@ export class UsersService {
     const user = this.usersRepository.create(input);
     return this.usersRepository.save(user);
   }
+
+  findById(id: string): Promise<UserEntity | null> {
+    return this.usersRepository.findOne({ where: { id } });
+  }
 }

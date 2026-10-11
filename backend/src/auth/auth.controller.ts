@@ -15,6 +15,8 @@ import type { Response } from 'express';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
+import { Get, UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 const validationPipe = new ValidationPipe({
   whitelist: true,
@@ -92,6 +94,22 @@ export class AuthController {
     return session.user;
   }
 
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  me(
+    @Req()
+    request: Request & {
+      user: {
+        userId: string;
+        name: string;
+        email: string;
+        role: string;
+      };
+    },
+  ) {
+    return request.user;
+  }
+  
   @Post('logout')
   @HttpCode(HttpStatus.NO_CONTENT)
   async logout(
