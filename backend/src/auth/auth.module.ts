@@ -7,26 +7,7 @@ import { RefreshTokenEntity } from './entities/refresh-token.entity/refresh-toke
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { UsersModule } from '../users/users.module';
-
-function durationToSeconds(value: string): number {
-  const match = /^(\d+)(s|m|h|d)$/.exec(value);
-
-  if (!match) {
-    throw new Error(`Invalid JWT duration: ${value}`);
-  }
-
-  const amount = Number(match[1]);
-  const unit = match[2];
-
-  const secondsPerUnit: Record<string, number> = {
-    s: 1,
-    m: 60,
-    h: 60 * 60,
-    d: 24 * 60 * 60,
-  };
-
-  return amount * secondsPerUnit[unit];
-}
+import { durationToSeconds } from './auth.utils';
 
 @Module({
   imports: [
