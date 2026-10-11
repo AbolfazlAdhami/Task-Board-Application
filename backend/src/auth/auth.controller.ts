@@ -15,7 +15,8 @@ import type { Response } from 'express';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { Get, UseGuards } from '@nestjs/common';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import { Throttle } from '@nestjs/throttler';
 
 const validationPipe = new ValidationPipe({
   whitelist: true,
@@ -30,14 +31,15 @@ export class AuthController {
     private readonly configService: ConfigService,
   ) {}
 
-//   @Post('register')
-//   @HttpCode(HttpStatus.CREATED)
-//   register(@Body(validationPipe) input: RegisterDto) {
-//     return this.authService.register(input);
-//   }
+  //   @Post('register')
+  //   @HttpCode(HttpStatus.CREATED)
+  //   register(@Body(validationPipe) input: RegisterDto) {
+  //     return this.authService.register(input);
+  //   }
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
   async login(
     @Body(validationPipe) input: LoginDto,
     @Res({ passthrough: true }) response: Response,

@@ -5,13 +5,13 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { RefreshTokenEntity } from './entities/refresh-token.entity/refresh-token.entity';
 import { PassportModule } from '@nestjs/passport';
 
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { UsersModule } from '../users/users.module';
 import { durationToSeconds } from './auth.utils';
-import { JwtStrategy } from './strategies/jwt.strategy';
+import { JwtStrategy } from '../common/strategies/jwt.strategy';
 
 @Module({
   imports: [

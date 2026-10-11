@@ -1,6 +1,6 @@
 import * as bcrypt from 'bcrypt';
 import dataSource from '../data-source';
-import { UserEntity, UserRole } from '../../users/entities/user.entity';
+import { UserEntity, UserRole } from '../../../users/entities/user.entity';
 
 type SeedUser = {
   email: string;
