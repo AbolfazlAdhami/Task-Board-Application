@@ -3,6 +3,7 @@ import { config } from 'dotenv';
 import { DataSource } from 'typeorm';
 import { UserEntity } from '../users/entities/user.entity/user.entity';
 import { RefreshTokenEntity } from '../auth/entities/refresh-token.entity/refresh-token.entity';
+import { TodoEntity } from '../todos/entities/todo.entity/todo.entity';
 
 config({ path: '../.env' });
 
@@ -12,6 +13,7 @@ const required = (name: string): string => {
   return value;
 };
 
+
 export default new DataSource({
   type: 'postgres',
   host: process.env.POSTGRES_HOST ?? '127.0.0.1',
@@ -19,7 +21,7 @@ export default new DataSource({
   username: required('POSTGRES_USER'),
   password: required('POSTGRES_PASSWORD'),
   database: required('POSTGRES_DB'),
-  entities: [UserEntity, RefreshTokenEntity],
+  entities: [UserEntity, RefreshTokenEntity, TodoEntity],
   migrations: [__dirname + '/migrations/*{.ts,.js}'],
   synchronize: false,
   migrationsRun: false,
