@@ -83,3 +83,20 @@ Implement registration, login, logout, and refresh-session rotation.
 - Missing, invalid, and expired access tokens return `401`.
 - A refresh token cannot authenticate a protected route.
 - An inactive user is rejected.
+
+## Task authorization and ownership
+
+- Owner has full task access and can manage users.
+- Manager can create, edit, delete, and assign any task, but cannot manage users.
+- Member can access tasks created by them or assigned to them.
+- Members cannot assign tasks to other users or delete tasks created by other users.
+- Task creator identity comes from the authenticated request (`request.user.userId`), never from client input.
+- Authorization is enforced in NestJS services and guards.
+
+### Verification
+
+- Owner can access all tasks and user-management routes.
+- Manager can manage and assign tasks but receives `403` for user-management routes.
+- Member sees only created or assigned tasks.
+- Member cannot assign another user or delete another user's task.
+- Task creation records the authenticated user as creator.
