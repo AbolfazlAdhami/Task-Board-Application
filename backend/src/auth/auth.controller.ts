@@ -65,6 +65,23 @@ export class AuthController {
 
     return session.user;
   }
+
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  me(
+    @Req()
+    request: Request & {
+      user: {
+        userId: string;
+        name: string;
+        email: string;
+        role: string;
+      };
+    },
+  ) {
+    return request.user;
+  }
+  
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
   async refresh(
@@ -93,22 +110,6 @@ export class AuthController {
     });
 
     return session.user;
-  }
-
-  @Get('me')
-  @UseGuards(JwtAuthGuard)
-  me(
-    @Req()
-    request: Request & {
-      user: {
-        userId: string;
-        name: string;
-        email: string;
-        role: string;
-      };
-    },
-  ) {
-    return request.user;
   }
 
   @Post('logout')

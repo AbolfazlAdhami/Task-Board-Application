@@ -14,6 +14,7 @@ import { IsNull, Repository } from 'typeorm';
 import { RefreshTokenEntity } from './entities/refresh-token.entity/refresh-token.entity';
 import { LoginDto } from './dto/login.dto';
 import { durationToSeconds } from './auth.utils';
+
 type RefreshClaims = {
   sub: string;
   familyId: string;
@@ -29,33 +30,6 @@ export class AuthService {
     @InjectRepository(RefreshTokenEntity)
     private readonly refreshTokensRepository: Repository<RefreshTokenEntity>,
   ) {}
-
-  //   async register(input: RegisterDto) {
-  //     const email = input.email.trim().toLowerCase();
-
-  //     if (await this.usersService.findByEmailWithPassword(email)) {
-  //       throw new ConflictException('Email is already registered');
-  //     }
-
-  //     if (Buffer.byteLength(input.password, 'utf8') > 72) {
-  //       throw new BadRequestException('Password is too long');
-  //     }
-
-  //     const passwordHash = await bcrypt.hash(input.password, 12);
-  //     const user = await this.usersService.create({
-  //       email,
-  //       displayName: input.displayName.trim(),
-  //       passwordHash,
-  //     });
-
-  //     return {
-  //       id: user.id,
-  //       email: user.email,
-  //       displayName: user.displayName,
-  //       role: user.role,
-  //       createdAt: user.createdAt,
-  //     };
-  //   }
 
   async login(input: LoginDto) {
     const email = input.email.trim().toLowerCase();

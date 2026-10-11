@@ -7,12 +7,13 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
-import { IsNull, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { RefreshTokenEntity } from '../auth/entities/refresh-token.entity/refresh-token.entity';
 import { UserEntity, UserRole } from './entities/user.entity';
 import { AdminUpdateUserDto } from './dto/admin-update-user.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { UpdateMyProfileDto } from './dto/update-my-profile.dto';
+import { CreateUserDto } from './dto/create-user.dto';
 
 type PublicUser = {
   id: string;
@@ -47,15 +48,34 @@ export class UsersService {
     });
   }
 
-  async create(input: {
-    email: string;
-    displayName: string;
-    passwordHash: string;
-  }): Promise<UserEntity> {
-    const user = this.usersRepository.create(input);
-    return this.usersRepository.save(user);
-  }
+  async createUser(dto: CreateUserDto): Promise<PublicUser> {
+    const email = dto.email.trim().toLowerCase();
 
+    const existing = await this.usersRepository.findOne({
+      where: { email },
+      select: { id: true },
+    });
+
+    if (existing) {
+      throw new ConflictException('Email is already registered');
+    }
+
+    if (Buffer.byteLength(dto.password, 'utf8') > 72) {
+      throw new BadRequestException('Password is too long');
+    }
+
+    const passwordHash = await bcrypt.hash(dto.password, 12);
+    const user = this.usersRepository.create({
+      email,
+      displayName: dto.displayName.trim(),
+      passwordHash,
+      role: dto.role,
+      isActive: true,
+    });
+
+    return this.toPublicUser(await this.usersRepository.save(user));
+  }
+  
   findById(id: string): Promise<UserEntity | null> {
     return this.usersRepository.findOne({ where: { id } });
   }
