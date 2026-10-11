@@ -117,7 +117,7 @@ README must explain environment setup, Docker Compose, migrations, seed commands
 
 These are implementation details not fixed by the assignment and should be made explicit before scaffolding:
 
-- Workspace package manager and root script conventions.
+- Decision: use npm workspaces and root scripts. Require Node.js 24.15+; the local Node 26 runtime also satisfies this.
 - User login identifier and exact task priority values.
 - Refresh-session storage shape, token lifetimes, and cookie settings.
 - Whether managers' task visibility includes every task (assignment says they can manage any task; implement global visibility unless clarified by concrete product constraints).
