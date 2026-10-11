@@ -1,51 +1,66 @@
-# Implementation plan
+# Task Board Implementation Plan
 
-Phases should be completed in order. At the end of each phase, review the changed files and record the checks that actually ran.
+This is the staged execution plan for the hiring assignment. Complete the stages in order, keeping each stage small enough to review before moving on. The assignment allows up to 60 hours; prioritize security and required functionality over polish.
 
-## Phase 0 — Requirements and working agreement
-- Record project instructions in `AGENTS.md`.
-- Translate the assignment requirements into implementation phases.
-- Resolve ambiguities before making architectural decisions.
+## Stage 1 — Repository guidance and plan
 
-## Phase 1 — Monorepo foundation
-- Establish `frontend/`, `backend/`, `docs/`, and AI guidance areas.
-- Add root scripts, environment example, and PostgreSQL Compose service.
-- Review package scripts, environment loading, and the Next.js API proxy.
-- Install dependencies, create a lockfile, and build both applications.
+- [x] Add root `AGENTS.md` with architecture and security invariants.
+- [x] Add project AI skill and engineering rules in `.ai/skills/` and `.ai/rules/`.
+- [x] Record the implementation sequence here.
+- [x] Review this plan and agree the next coding step with the user.
 
-## Phase 2 — Database model, migrations, and seed
-- Implement user and task entities.
-- Create reversible migrations; keep `synchronize: false`.
-- Create an idempotent seed for one Owner, one Manager, and one Member.
-- Verify migration and seed behavior against PostgreSQL.
+## Stage 2 — Monorepo foundation
 
-## Phase 3 — Authentication and sessions
-- Implement login, logout, refresh rotation, and `/auth/me`.
-- Use HttpOnly cookies and store only a refresh-token hash.
-- Ensure a disabled user’s existing sessions stop working.
+- [ ] Create `frontend/` (Next.js App Router, TypeScript, Tailwind, Headless UI, TipTap) and `backend/` (NestJS, TypeORM).
+- [ ] Add root package/workspace scripts and Node.js 20+ configuration.
+- [ ] Add Docker Compose for PostgreSQL and environment examples without secrets.
+- [ ] Add health checks and document local startup.
 
-## Phase 4 — Roles and user administration
-- Enforce Owner, Manager, and Member permissions inside NestJS.
-- Protect the last active Owner from disablement or role downgrade.
-- Add tests for forbidden user administration and last-owner protection.
+## Stage 3 — Database model and migrations
 
-## Phase 5 — Task API and TipTap JSON
-- Implement task CRUD and role-based visibility.
-- Validate supported TipTap JSON nodes, marks, and HTTP/HTTPS links.
-- Test access, assignment, update, and deletion rules.
+- [ ] Design users, roles, refresh-token/session records, and task relationships.
+- [ ] Add migrations for every schema change; keep TypeORM `synchronize: false` in every environment.
+- [ ] Add safe, repeatable seed scripts for one active owner, manager, and member.
+- [ ] Hash seeded passwords with argon2 or bcrypt and document development credentials.
 
-## Phase 6 — Persian RTL frontend
-- Implement the Persian RTL task board.
-- Use Headless UI Dialog, Listbox, and Menu.
-- Add filters and a TipTap editor and read-only view.
-- Check keyboard navigation and role-specific workflows.
+## Stage 4 — Authentication and authorization
 
-## Phase 7 — Security and automated verification
-- Run unit, integration, and build checks.
-- Close security gaps and record actual results.
+- [ ] Implement login, logout, refresh, and current-user endpoints.
+- [ ] Put access tokens in HttpOnly cookies through the Next.js proxy boundary.
+- [ ] Store refresh-token hashes only; rotate/invalidate tokens safely.
+- [ ] Reject disabled users at login and on every authenticated request, including old sessions.
+- [ ] Enforce owner, manager, and member permissions in NestJS; protect the last active owner.
+- [ ] Validate DTOs, reject unknown properties, and normalize error responses.
 
-## Phase 8 — Delivery
-- Complete the README, including setup, migrations, seed, credentials, decisions, and limitations.
-- Document AI use and review practices.
-- Record the Persian screen demo, up to five minutes.
-- Deliver the source repository.
+## Stage 5 — Tasks API and rich text validation
+
+- [ ] Implement the required `/todos` CRUD endpoints and role-aware query/update/delete rules.
+- [ ] Validate task fields, statuses, priorities, assignees, and due dates.
+- [ ] Store TipTap JSON in PostgreSQL `jsonb`; allow empty documents and only supported node/mark types.
+- [ ] Restrict links to `http` and `https`; render read-only content from the same JSON structure.
+
+## Stage 6 — Persian RTL frontend
+
+- [ ] Build the task board, filtering by status and assignee, and role-aware user actions.
+- [ ] Use Headless UI Dialog for create/edit and Listbox/Menu for selections/actions.
+- [ ] Verify keyboard navigation, focus handling, RTL layout, and accessible labels.
+- [ ] Use the Next.js `/api/v1/*` proxy for all browser requests; never call NestJS directly from the browser.
+
+## Stage 7 — Required tests and security review
+
+- [ ] Test that a member cannot view another user's tasks.
+- [ ] Test that a member cannot modify users.
+- [ ] Test that a disabled user cannot call APIs with an old token.
+- [ ] Review role/ownership enforcement, cookie flags, token rotation, unknown-field rejection, and last-owner protection.
+- [ ] Verify migrations and seed behavior against an existing database.
+
+## Stage 8 — Documentation and delivery
+
+- [ ] Complete README: setup, environment, Docker Compose, migrations, seeds, sample credentials, architecture, limitations.
+- [ ] Document AI use and how generated code was reviewed.
+- [ ] Record a Persian screen demonstration under five minutes covering architecture, auth, task flow, TipTap JSON, and key decisions.
+- [ ] Mark any unfinished requirements honestly; do not imply incomplete work is done.
+
+## Definition of done
+
+The app starts from documented commands, schema creation occurs through migrations only, seeded accounts are repeatable, all authorization is enforced by NestJS, required tests pass, the UI is Persian/RTL and keyboard accessible, and delivery documentation accurately describes the implementation and its limitations.
