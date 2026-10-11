@@ -6,7 +6,10 @@ import {
   ValidationPipe,
   HttpCode,
   HttpStatus,
+  Req,
 } from '@nestjs/common';
+
+import type { Request } from 'express';
 import { ConfigService } from '@nestjs/config';
 import type { Response } from 'express';
 import { AuthService } from './auth.service';
@@ -39,6 +42,35 @@ export class AuthController {
     @Res({ passthrough: true }) response: Response,
   ) {
     const session = await this.authService.login(input);
+    const secure = this.configService.get('NODE_ENV') === 'production';
+
+    response.cookie('access_token', session.accessToken, {
+      httpOnly: true,
+      secure,
+      sameSite: 'lax',
+      path: '/',
+      maxAge: session.accessTokenMaxAge,
+    });
+
+    response.cookie('refresh_token', session.refreshToken, {
+      httpOnly: true,
+      secure,
+      sameSite: 'lax',
+      path: '/auth',
+      maxAge: session.refreshTokenMaxAge,
+    });
+
+    return session.user;
+  }
+  @Post('refresh')
+  @HttpCode(HttpStatus.OK)
+  async refresh(
+    @Req() request: Request,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const session = await this.authService.refresh(
+      request.cookies?.refresh_token,
+    );
     const secure = this.configService.get('NODE_ENV') === 'production';
 
     response.cookie('access_token', session.accessToken, {

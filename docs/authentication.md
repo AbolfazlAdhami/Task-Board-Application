@@ -36,3 +36,21 @@ Implement registration, login, logout, and refresh-session rotation.
 - Successful login sets both cookies and returns no token values in the body.
 - Unknown email and wrong password both return `401`.
 - Inactive user login returns `401`.
+
+
+## Refresh and rotation
+
+- Read the refresh JWT from the HttpOnly `refresh_token` cookie.
+- Verify its signature and expiry with `JWT_REFRESH_SECRET`.
+- Look up the stored row by SHA-256 hash; reject unknown or expired tokens.
+- On successful refresh, revoke the current row and issue a new refresh token in the same family.
+- Store only the new token's SHA-256 hash and update both auth cookies.
+- If a previously revoked token is reused, revoke every active token in its family and reject the request.
+- Reject refresh for inactive users.
+- Make rotation atomic so concurrent requests cannot both reuse the same active token.
+
+### Verification
+- A valid refresh returns `200`, updates both cookies, and stores a new hash.
+- The previous refresh token cannot be used again.
+- Reuse of a revoked token revokes the active token in that family.
+- Invalid, expired, and inactive-user refresh attempts are rejected.

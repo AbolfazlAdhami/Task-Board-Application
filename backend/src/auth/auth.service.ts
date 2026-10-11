@@ -11,10 +11,15 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { createHash, randomUUID } from 'node:crypto';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import { RefreshTokenEntity } from './entities/refresh-token.entity/refresh-token.entity';
 import { LoginDto } from './dto/login.dto';
 import { durationToSeconds } from './auth.utils';
+type RefreshClaims = {
+  sub: string;
+  familyId: string;
+  jti: string;
+};
 
 @Injectable()
 export class AuthService {
@@ -115,5 +120,142 @@ export class AuthService {
         role: user.role,
       },
     };
+  }
+
+  async refresh(refreshToken: string | undefined) {
+    const unauthorized = () =>
+      new UnauthorizedException('Invalid refresh token');
+
+    if (!refreshToken) {
+      throw unauthorized();
+    }
+
+    let claims: RefreshClaims;
+
+    try {
+      claims = await this.jwtService.verifyAsync<RefreshClaims>(refreshToken, {
+        secret: this.configService.getOrThrow<string>('JWT_REFRESH_SECRET'),
+      });
+    } catch {
+      throw unauthorized();
+    }
+
+    const tokenHash = createHash('sha256').update(refreshToken).digest('hex');
+
+    let session:
+      | {
+          accessToken: string;
+          refreshToken: string;
+          accessTokenMaxAge: number;
+          refreshTokenMaxAge: number;
+          user: {
+            id: string;
+            email: string;
+            displayName: string;
+            role: string;
+          };
+        }
+      | undefined;
+
+    await this.refreshTokensRepository.manager.transaction(async (manager) => {
+      const storedToken = await manager
+        .createQueryBuilder(RefreshTokenEntity, 'token')
+        .innerJoinAndSelect('token.user', 'user')
+        .where('token.tokenHash = :tokenHash', { tokenHash })
+        .setLock('pessimistic_write')
+        .getOne();
+
+      if (
+        !storedToken ||
+        storedToken.familyId !== claims.familyId ||
+        storedToken.user.id !== claims.sub
+      ) {
+        return;
+      }
+
+      const now = new Date();
+
+      if (storedToken.revokedAt) {
+        await manager.update(
+          RefreshTokenEntity,
+          { familyId: storedToken.familyId, revokedAt: IsNull() },
+          { revokedAt: now },
+        );
+        return;
+      }
+
+      if (storedToken.expiresAt <= now || !storedToken.user.isActive) {
+        await manager.update(
+          RefreshTokenEntity,
+          { familyId: storedToken.familyId, revokedAt: IsNull() },
+          { revokedAt: now },
+        );
+        return;
+      }
+
+      storedToken.revokedAt = now;
+      await manager.save(storedToken);
+
+      const accessExpiresIn = durationToSeconds(
+        this.configService.getOrThrow<string>('JWT_ACCESS_EXPIRES_IN'),
+      );
+      const refreshExpiresIn = durationToSeconds(
+        this.configService.getOrThrow<string>('JWT_REFRESH_EXPIRES_IN'),
+      );
+
+      const nextAccessToken = await this.jwtService.signAsync(
+        {
+          sub: storedToken.user.id,
+          email: storedToken.user.email,
+          role: storedToken.user.role,
+        },
+        {
+          secret: this.configService.getOrThrow<string>('JWT_ACCESS_SECRET'),
+          expiresIn: accessExpiresIn,
+        },
+      );
+
+      const nextRefreshToken = await this.jwtService.signAsync(
+        {
+          sub: storedToken.user.id,
+          familyId: storedToken.familyId,
+          jti: randomUUID(),
+        },
+        {
+          secret: this.configService.getOrThrow<string>('JWT_REFRESH_SECRET'),
+          expiresIn: refreshExpiresIn,
+        },
+      );
+
+      await manager.save(
+        manager.create(RefreshTokenEntity, {
+          tokenHash: createHash('sha256')
+            .update(nextRefreshToken)
+            .digest('hex'),
+          familyId: storedToken.familyId,
+          expiresAt: new Date(Date.now() + refreshExpiresIn * 1000),
+          user: storedToken.user,
+        }),
+      );
+
+      session = {
+        accessToken: nextAccessToken,
+        refreshToken: nextRefreshToken,
+        accessTokenMaxAge: accessExpiresIn * 1000,
+        refreshTokenMaxAge: refreshExpiresIn * 1000,
+        user: {
+          id: storedToken.user.id,
+          email: storedToken.user.email,
+          displayName: storedToken.user.displayName,
+          role: storedToken.user.role,
+        },
+      };
+    });
+
+    if (!session) {
+      throw unauthorized();
+    }
+
+    return session;
   }
 }
