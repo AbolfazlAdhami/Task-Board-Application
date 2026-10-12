@@ -23,7 +23,12 @@ api.interceptors.response.use(
     const url = original?.url ?? "";
     const isAuthEndpoint = /^\/auth\/(login|refresh|logout)$/.test(url);
 
-    if (error.response?.status !== 401 || !original || original._retried || isAuthEndpoint) {
+    if (
+      error.response?.status !== 401 ||
+      !original ||
+      original._retried ||
+      isAuthEndpoint
+    ) {
       return Promise.reject(error);
     }
 
@@ -41,7 +46,7 @@ api.interceptors.response.use(
       return api.request(original);
     } catch (refreshError) {
       if (typeof window !== "undefined") {
-        window.location.assign("/login");
+        window.dispatchEvent(new Event("task-board:unauthorized"));
       }
 
       return Promise.reject(refreshError);

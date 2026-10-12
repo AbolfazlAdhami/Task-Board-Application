@@ -78,6 +78,4 @@ The global Nest `ValidationPipe` enables `whitelist` and `forbidNonWhitelisted`;
 
 ## Verification record
 
-On 2026-10-12 the developer reported completing the task API smoke checks in HTTPie Desktop. The backend unit suite passed (3 suites, 5 tests), the build passed, and the e2e suite passed its root `GET /` test. The e2e suite does not yet exercise task routes against PostgreSQL. Refer to `backend-requirements-audit.md` for current coverage and remaining work.
-
-The frontend read-only renderer is still pending and must render the same TipTap JSON structure used by the API.
+On 2026-10-12 the developer reported completing the task API smoke checks in HTTPie Desktop. Automated backend tests cover member visibility by ID and list scope at service level, and a PostgreSQL-backed e2e test verifies that a member receives `404` when requesting another member's task. The frontend read-only renderer uses the same TipTap JSON document structure as the editor and API. Broader create/update/delete e2e coverage is still a useful addition.

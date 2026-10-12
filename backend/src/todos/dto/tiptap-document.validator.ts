@@ -127,7 +127,8 @@ export class TiptapDocumentValidator implements ValidatorConstraintInterface {
     const validType =
       value.type === undefined ||
       value.type === null ||
-      ['1', 'a', 'A', 'i', 'I'].includes(String(value.type));
+      (typeof value.type === 'string' &&
+        ['1', 'a', 'A', 'i', 'I'].includes(value.type));
 
     return validStart && validType;
   }

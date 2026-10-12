@@ -10,9 +10,20 @@
 - Next.js frontend: `http://localhost:3000`
 - NestJS backend: `http://localhost:3001`
 - The root `npm run dev` command starts both applications together.
-- The browser will call Next.js only; Next.js will proxy API calls to NestJS.
+- The browser calls Next.js only; Next.js proxies API calls to NestJS.
+- PostgreSQL runs in Compose and is published on port `5433` by default.
+- `GET /api/v1/health` is a public readiness check and pings PostgreSQL.
 
-PostgreSQL Compose configuration and database startup instructions will be recorded when that setup is added.
+## Dashboard session guard
+
+- Next.js `proxy.ts` checks for an access or refresh cookie on protected page routes and redirects requests with neither cookie to `/login`.
+- Cookie presence is an optimistic navigation check only. `DashboardShell` verifies `/auth/me`; the NestJS JWT strategy reloads the user, rejects disabled accounts, and supplies the current database role for authorization.
+- A refresh cookie is allowed through so the shared Axios client can call the refresh endpoint. If refresh fails, it emits an unauthorized event and the dashboard navigates to login.
+
+## Persian font
+
+- Bundle Vazirmatn from `@fontsource-variable/vazirmatn` and load it locally. Production builds do not fetch fonts from Google at build time.
+- The font package is distributed under the SIL Open Font License.
 
 ## Backend browser CORS policy
 

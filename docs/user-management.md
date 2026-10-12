@@ -23,8 +23,7 @@ The Persian RTL directory is at `/users` and uses the Next.js `/api/v1/*` proxy 
 
 ## Verification
 
-- `npx tsc --noEmit -p frontend/tsconfig.json` passed after the user-management changes.
-- `npm run lint --workspace=frontend` passed with 0 errors and one pre-existing warning in `frontend/lib/api/client.ts` about `window.location.assign()`.
-- `npm run build --workspace=frontend -- --webpack` is blocked in this environment because DNS cannot resolve `fonts.googleapis.com` for the configured Vazirmatn `next/font` download. The build did not reach application compilation.
-- There is currently no frontend component-test or automated browser-test setup. Keyboard and screen-reader behavior still needs a manual accessibility pass before Stage 6 is marked complete.
-- Backend role enforcement and last-active-owner behavior remain authoritative and are covered in the backend requirements audit.
+- Frontend TypeScript, lint, Jest component tests, and production build passed after these changes.
+- Jest tests verify owner-only controls, manager read-only access, dialog Escape handling and focus restoration, and axe checks for the directory view.
+- Backend e2e tests verify member user-management denial and the inactive-user HTTP behavior; a service unit test covers last-active-owner protection.
+- A manual screen-reader review is still recommended before delivery.

@@ -4,13 +4,15 @@
 
 Public registration is intentionally disabled. Initial users are created through the database seed script; additional users are created by an authenticated owner. The API global prefix is `/api/v1`. Access cookies use `Path=/`; refresh cookies use `Path=/api/v1/auth` so the browser sends them to the refresh and logout endpoints.
 
+The frontend route proxy redirects `/` and `/users` to `/login` when neither access nor refresh cookie is present. A refresh cookie is allowed so the Axios client can attempt refresh; `DashboardShell` verifies `/auth/me` and redirects to login when that attempt fails. The proxy checks cookie presence only. NestJS verifies the signed token, active user state, and role on every protected API request.
+
 ## Verification status (2026-10-12)
 
 - Backend build passed.
-- Unit tests passed: 3 suites, 5 tests. Coverage includes member task visibility, owner-only user updates, and rejecting an inactive user in the JWT strategy.
-- The e2e suite passed its single `GET /` smoke test. It does not yet exercise the auth endpoints through a signed-token HTTP flow.
+- Unit tests passed: 4 suites, 7 tests, including task visibility, member user-management denial, inactive JWT rejection, and protection of the last active owner.
+- E2e tests passed: 2 suites, 9 tests. They exercise task/user denials, owner user-management success, manager read-only access, manager/owner task CRUD, disabled-user rejection with an old cookie, refresh rotation/hash storage/reuse revocation, logout, and database readiness.
+- Backend lint passed with no warnings.
 - HTTPie Desktop checks for auth, user, and task routes were reported complete by the developer; detailed response codes were not recorded in this document.
-- Lint passed with four warnings and no errors; see `backend-requirements-audit.md` for the warning list.
 
 ## Scope
 

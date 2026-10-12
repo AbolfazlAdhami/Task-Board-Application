@@ -32,6 +32,9 @@ export function DashboardShell({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let active = true;
+    const redirectToLogin = () => router.replace("/login");
+
+    window.addEventListener("task-board:unauthorized", redirectToLogin);
 
     authApi
       .me()
@@ -39,7 +42,10 @@ export function DashboardShell({ children }: { children: ReactNode }) {
         if (active) setUser(currentUser);
       })
       .catch(() => {
-        if (active) setUser(null);
+        if (active) {
+          setUser(null);
+          router.replace("/login");
+        }
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -47,8 +53,9 @@ export function DashboardShell({ children }: { children: ReactNode }) {
 
     return () => {
       active = false;
+      window.removeEventListener("task-board:unauthorized", redirectToLogin);
     };
-  }, []);
+  }, [router]);
 
   async function handleLogout() {
     setLoggingOut(true);

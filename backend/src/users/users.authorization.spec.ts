@@ -7,7 +7,10 @@ import { UsersController } from './users.controller';
 import { UserRole } from './entities/user.entity';
 
 describe('UsersController authorization', () => {
-  const updateHandler = UsersController.prototype.updateUser;
+  const updateHandler = Object.getOwnPropertyDescriptor(
+    UsersController.prototype,
+    'updateUser',
+  )?.value as (...args: never[]) => unknown;
 
   function contextFor(role: UserRole): ExecutionContext {
     return {
