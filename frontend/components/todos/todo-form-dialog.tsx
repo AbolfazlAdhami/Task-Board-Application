@@ -35,7 +35,7 @@ function FormSelect({ label, value, options, onChange }: { label: string; value:
         <span>{selectedLabel ?? "انتخاب کنید"}</span>
         <span aria-hidden="true">⌄</span>
       </ListboxButton>
-      <ListboxOptions anchor="bottom end" className="z-[60] mt-2 max-h-56 w-[var(--button-width)] overflow-auto rounded-xl border border-slate-200 bg-white p-1 shadow-xl focus:outline-none">
+      <ListboxOptions anchor="bottom end" className="z-60 mt-2 max-h-56 w-[var(--button-width)] overflow-auto rounded-xl border border-slate-200 bg-white p-1 shadow-xl focus:outline-none">
         {options.map((option) => (
           <ListboxOption
             key={option.value || "unassigned"}
