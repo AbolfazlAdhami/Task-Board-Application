@@ -1,13 +1,17 @@
 # Authentication
 
+## Current implementation status
+
+Public registration is intentionally disabled. Initial users are created through the database seed script; additional users are created by an authenticated owner. Authentication and session handlers exist, but the current automated e2e suite only checks `GET /`; the security and cookie checks below are required verification work, not a claim that the full suite has passed.
+
 ## Scope
 
-Implement registration, login, logout, and refresh-session rotation.
+Implement login, logout, refresh-session rotation, and the current-user endpoint.
 
 ## Requirements
 
-- Registration requires a unique email and a password stored only as a secure hash.
-- New users receive the `member` role by default.
+- Public registration is disabled; initial accounts come from the seed script and user creation is owner-only.
+- Created user passwords are stored only as bcrypt hashes.
 - Login rejects invalid credentials and inactive users.
 - Access tokens are short-lived and sent in an HttpOnly cookie.
 - Refresh tokens are stored only as hashes in the database and belong to a token family.
@@ -16,7 +20,7 @@ Implement registration, login, logout, and refresh-session rotation.
 
 ## Verification
 
-- Test successful and rejected registration and login.
+- Test successful and rejected login.
 - Test that inactive users cannot log in.
 - Test refresh rotation, expired or invalid refresh tokens, and token-family revocation.
 - Test logout revocation and cookie behavior.
@@ -73,7 +77,7 @@ Implement registration, login, logout, and refresh-session rotation.
 - Passport validates access JWTs from the `access_token` HttpOnly cookie.
 - Use `JWT_ACCESS_SECRET` and reject invalid or expired tokens.
 - Refresh tokens must never authenticate API requests.
-- Attach the validated user (`id`, `email`, `role`) to the request.
+- Attach the validated user (`userId`, `name`, `email`, `role`) to the request.
 - Reject requests from inactive users, even when their access token is otherwise valid.
 - Protect routes with a reusable `JwtAuthGuard`; public auth routes remain accessible.
 

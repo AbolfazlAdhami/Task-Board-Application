@@ -3,7 +3,7 @@ import { config } from 'dotenv';
 import { DataSource } from 'typeorm';
 import { UserEntity } from '../../users/entities/user.entity';
 import { RefreshTokenEntity } from '../../auth/entities/refresh-token.entity/refresh-token.entity';
-import { TodoEntity } from '../../todos/entities/todo.entity/todo.entity';
+import { TodoEntity } from '../../todos/entities/todo.entity';
 
 config({ path: '../.env' });
 
