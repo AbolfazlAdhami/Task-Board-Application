@@ -18,7 +18,7 @@ export function UsersTable({ users, canManage, hasAnyUsers, onEdit }: { users: U
   return (
     <>
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[680px] text-right text-sm">
+        <table className="w-full min-w-170 text-right text-sm">
           <caption className="sr-only">فهرست و وضعیت کاربران تیم</caption>
           <thead className="text-xs text-muted">
             <tr>
