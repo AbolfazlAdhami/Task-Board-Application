@@ -4,26 +4,26 @@ The API base path is `/api/v1`. All task routes require a valid access JWT in th
 
 ## Routes
 
-| Method | Route | Behavior |
-|---|---|---|
-| `GET` | `/api/v1/todos` | Lists all tasks for owner/manager; lists only created or assigned tasks for member. |
-| `POST` | `/api/v1/todos` | Creates a task; creator is taken from the authenticated user. |
-| `GET` | `/api/v1/todos/:id` | Reads one task. A member who cannot access it receives `404`. |
-| `PATCH` | `/api/v1/todos/:id` | Updates task fields. An empty update body is rejected. |
-| `DELETE` | `/api/v1/todos/:id` | Deletes a task. Members can delete only tasks they created. |
+| Method   | Route               | Behavior                                                                            |
+| -------- | ------------------- | ----------------------------------------------------------------------------------- |
+| `GET`    | `/api/v1/todos`     | Lists all tasks for owner/manager; lists only created or assigned tasks for member. |
+| `POST`   | `/api/v1/todos`     | Creates a task; creator is taken from the authenticated user.                       |
+| `GET`    | `/api/v1/todos/:id` | Reads one task. A member who cannot access it receives `404`.                       |
+| `PATCH`  | `/api/v1/todos/:id` | Updates task fields. An empty update body is rejected.                              |
+| `DELETE` | `/api/v1/todos/:id` | Deletes a task. Members can delete only tasks they created.                         |
 
 Expected success statuses are `200` for GET/PATCH, `201` for POST, and `204` for DELETE.
 
 ## Task fields
 
-| Field | Type | Rules |
-|---|---|---|
-| `title` | string | Required on create; 1–200 characters and cannot be whitespace-only. |
-| `status` | string | `todo`, `in_progress`, or `done`; defaults to `todo`. |
-| `priority` | string | `low`, `medium`, or `high`; defaults to `medium`. |
-| `assignedTo` | UUID or `null` | Optional. Only owner/manager may assign another user, and the assignee must be active. |
-| `dueDate` | date string or `null` | Optional; format `YYYY-MM-DD`. |
-| `description` | TipTap JSON object | Optional; defaults to `{ "type": "doc", "content": [] }`. Stored as PostgreSQL `jsonb`. |
+| Field         | Type                  | Rules                                                                                   |
+| ------------- | --------------------- | --------------------------------------------------------------------------------------- |
+| `title`       | string                | Required on create; 1–200 characters and cannot be whitespace-only.                     |
+| `status`      | string                | `todo`, `in_progress`, or `done`; defaults to `todo`.                                   |
+| `priority`    | string                | `low`, `medium`, or `high`; defaults to `medium`.                                       |
+| `assignedTo`  | UUID or `null`        | Optional. Only owner/manager may assign another user, and the assignee must be active.  |
+| `dueDate`     | date string or `null` | Optional; format `YYYY-MM-DD`.                                                          |
+| `description` | TipTap JSON object    | Optional; defaults to `{ "type": "doc", "content": [] }`. Stored as PostgreSQL `jsonb`. |
 
 Example create body:
 
@@ -45,7 +45,10 @@ Example create body:
             "type": "text",
             "text": "release guide",
             "marks": [
-              { "type": "link", "attrs": { "href": "https://example.com/guide" } }
+              {
+                "type": "link",
+                "attrs": { "href": "https://example.com/guide" }
+              }
             ]
           }
         ]
@@ -69,6 +72,8 @@ Example create body:
 - **Owner:** can read and manage every task.
 - **Manager:** can create, read, update, delete, and assign any task to an active user.
 - **Member:** can read tasks they created or that are assigned to them. They cannot assign tasks to another user and can delete only tasks they created.
+
+In the board UI, owners and managers can drag any task between status columns. Members can drag only tasks they created or that are assigned to them. The API remains authoritative and checks access again when saving a status change.
 
 The member-scoped list uses creator and assignee filters. A member requesting an inaccessible task by ID receives `404` to avoid revealing its existence. A member who can access a task because it is assigned to them but did not create it receives `403` when attempting deletion.
 

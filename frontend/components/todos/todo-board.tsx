@@ -10,6 +10,7 @@ import { TodoCard } from "./todo-card";
 import { TodoColumn, todoStatusLabels } from "./todo-column";
 import { TodoDeleteDialog } from "./todo-delete-dialog";
 import { TodoFormDialog } from "./todo-form-dialog";
+import { canEditTodo } from "./todo-permissions";
 import { DragDropProvider, type DragEndEvent } from "@dnd-kit/react";
 
 type StatusFilter = "all" | TodoStatus;
@@ -58,7 +59,7 @@ export function TodoBoard() {
   }
 
   function handleDragEnd(event: DragEndEvent) {
-    if (event.canceled || currentUser?.role !== "owner" || statusChangePending) {
+    if (event.canceled || !currentUser || statusChangePending) {
       return;
     }
 
@@ -70,7 +71,7 @@ export function TodoBoard() {
     }
 
     const existingTodo = todos.find((todo) => todo.id === todoId);
-    if (!existingTodo || existingTodo.status === nextStatus) return;
+    if (!existingTodo || !canEditTodo(existingTodo, currentUser) || existingTodo.status === nextStatus) return;
 
     const previousStatus = existingTodo.status;
     const updatedStatus = nextStatus as TodoStatus;
@@ -111,13 +112,6 @@ export function TodoBoard() {
   function openEditForm(todo: Todo) {
     setEditingTodo(todo);
     setFormOpen(true);
-  }
-
-  function canEditTodo(todo: Todo) {
-    if (!currentUser) return false;
-    if (currentUser.role !== "member") return true;
-
-    return todo.createdBy === currentUser.userId || todo.assignedTo === currentUser.userId;
   }
 
   useEffect(() => {
@@ -223,14 +217,14 @@ export function TodoBoard() {
             const laneTodos = filteredTodos.filter((todo) => todo.status === status);
 
             return (
-              <TodoColumn key={status} status={status} count={laneTodos.length} canDrop={currentUser?.role === "owner"}>
+              <TodoColumn key={status} status={status} count={laneTodos.length} canDrop={currentUser !== null}>
                 {laneTodos.map((todo) => (
                   <TodoCard
                     key={todo.id}
                     todo={todo}
-                    canDrag={currentUser?.role === "owner" && !statusChangePending}
+                    canDrag={canEditTodo(todo, currentUser) && !statusChangePending}
                     assigneeName={todo.assignedTo ? (userNames.get(todo.assignedTo) ?? (todo.assignedTo === currentUser?.userId ? "من" : "عضو تیم")) : "بدون مسئول"}
-                    onEdit={canEditTodo(todo) ? () => openEditForm(todo) : undefined}
+                    onEdit={canEditTodo(todo, currentUser) ? () => openEditForm(todo) : undefined}
                     onDelete={
                       canDeleteTodo(todo)
                         ? () => {
