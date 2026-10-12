@@ -1,29 +1,65 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { usersApi, type UserSummary } from "../../lib/api/users-api";
-
-const roleLabels = {
-  owner: "مالک",
-  manager: "مدیر",
-  member: "عضو",
-} as const;
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { AlertCircle, RefreshCw } from "lucide-react";
+import { authApi, type CurrentUser } from "@/lib/api/auth-api";
+import { usersApi, type UserSummary } from "@/lib/api/users-api";
+import {
+  UserDirectoryToolbar,
+  type RoleFilter,
+} from "./user-directory-toolbar";
+import { UserFormDialog } from "./user-form-dialog";
+import { UserSummaryCards } from "./user-summary-cards";
+import { UsersTable } from "./users-table";
 
 export function UsersList() {
   const [users, setUsers] = useState<UserSummary[]>([]);
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [query, setQuery] = useState("");
+  const [roleFilter, setRoleFilter] = useState<RoleFilter>("all");
+  const [showInactive, setShowInactive] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState<UserSummary | null>(null);
+  const [notice, setNotice] = useState("");
+
+  const fetchDirectory = useCallback(async () => {
+    return Promise.all([usersApi.list(), authApi.me()]);
+  }, []);
+
+  const loadUsers = useCallback(async () => {
+    setLoading(true);
+    setError("");
+
+    try {
+      const [result, me] = await fetchDirectory();
+      setUsers(result);
+      setCurrentUser(me);
+    } catch {
+      setError(
+        "دریافت فهرست کاربران انجام نشد. اتصال و دسترسی خود را بررسی کنید.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, [fetchDirectory]);
 
   useEffect(() => {
     let active = true;
 
-    usersApi
-      .list()
-      .then((result) => {
-        if (active) setUsers(result);
+    fetchDirectory()
+      .then(([result, me]) => {
+        if (!active) return;
+        setUsers(result);
+        setCurrentUser(me);
       })
       .catch(() => {
-        if (active) setError("فهرست کاربران بارگذاری نشد.");
+        if (active) {
+          setError(
+            "دریافت فهرست کاربران انجام نشد. اتصال و دسترسی خود را بررسی کنید.",
+          );
+        }
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -32,61 +68,148 @@ export function UsersList() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [fetchDirectory]);
 
-  if (loading) {
-    return (
-      <p className="py-10 text-sm text-slate-500" aria-live="polite">
-        در حال دریافت کاربران…
-      </p>
+  const canManageUsers = currentUser?.role === "owner";
+  const activeCount = users.filter((user) => user.isActive).length;
+  const activeOwnerCount = users.filter(
+    (user) => user.role === "owner" && user.isActive,
+  ).length;
+
+  const filteredUsers = useMemo(() => {
+    const normalizedQuery = query.trim().toLocaleLowerCase("fa");
+
+    return users.filter((user) => {
+      const matchesQuery =
+        normalizedQuery.length === 0 ||
+        user.displayName.toLocaleLowerCase("fa").includes(normalizedQuery) ||
+        user.email.toLocaleLowerCase("en").includes(normalizedQuery);
+      const matchesRole = roleFilter === "all" || user.role === roleFilter;
+      const matchesStatus = showInactive || user.isActive;
+      return matchesQuery && matchesRole && matchesStatus;
+    });
+  }, [query, roleFilter, showInactive, users]);
+
+  function openCreateDialog() {
+    setEditingUser(null);
+    setNotice("");
+    setDialogOpen(true);
+  }
+
+  function openEditDialog(user: UserSummary) {
+    setEditingUser(user);
+    setNotice("");
+    setDialogOpen(true);
+  }
+
+  function handleSaved(savedUser: UserSummary) {
+    setUsers((current) => {
+      const exists = current.some((user) => user.id === savedUser.id);
+      return exists
+        ? current.map((user) => (user.id === savedUser.id ? savedUser : user))
+        : [savedUser, ...current];
+    });
+    setDialogOpen(false);
+    setEditingUser(null);
+    setNotice(
+      editingUser
+        ? "تغییرات کاربر ذخیره شد."
+        : "کاربر جدید با موفقیت ساخته شد.",
     );
   }
 
-  if (error) {
+  if (loading && users.length === 0) {
     return (
-      <p role="alert" className="rounded-xl bg-rose-50 p-4 text-sm text-rose-700">
-        {error}
-      </p>
+      <div className="grid min-h-64 place-items-center rounded-3xl border border-border bg-surface">
+        <p className="text-sm text-muted" role="status" aria-live="polite">
+          در حال دریافت فهرست کاربران…
+        </p>
+      </div>
+    );
+  }
+
+  if (error && users.length === 0) {
+    return (
+      <section className="rounded-3xl border border-border bg-surface p-6 sm:p-8">
+        <div className="mx-auto flex max-w-md flex-col items-center text-center">
+          <span className="grid size-12 place-items-center rounded-2xl bg-danger/10 text-danger">
+            <AlertCircle aria-hidden="true" size={22} />
+          </span>
+          <p className="mt-4 text-sm leading-6 text-foreground" role="alert">
+            {error}
+          </p>
+          <button
+            type="button"
+            onClick={() => void loadUsers()}
+            className="mt-4 inline-flex min-h-10 items-center gap-2 rounded-xl border border-border px-4 text-sm font-semibold text-foreground transition hover:bg-surface-raised focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <RefreshCw aria-hidden="true" size={16} />
+            تلاش دوباره
+          </button>
+        </div>
+      </section>
     );
   }
 
   return (
-    <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white">
-      <table className="w-full min-w-160 text-right text-sm">
-        <caption className="sr-only">فهرست کاربران تیم</caption>
-        <thead className="bg-slate-50 text-xs text-slate-500">
-          <tr>
-            <th scope="col" className="px-5 py-4 font-semibold">
-              نام
-            </th>
-            <th scope="col" className="px-5 py-4 font-semibold">
-              ایمیل
-            </th>
-            <th scope="col" className="px-5 py-4 font-semibold">
-              نقش
-            </th>
-            <th scope="col" className="px-5 py-4 font-semibold">
-              وضعیت
-            </th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-slate-100">
-          {users.map((user) => (
-            <tr key={user.id} className="text-slate-700">
-              <td className="px-5 py-4 font-semibold text-slate-900">{user.displayName}</td>
-              <td dir="ltr" className="px-5 py-4 text-right">
-                {user.email}
-              </td>
-              <td className="px-5 py-4">{roleLabels[user.role]}</td>
-              <td className="px-5 py-4">
-                <span className={`rounded-full px-3 py-1 text-xs font-semibold ${user.isActive ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-500"}`}>{user.isActive ? "فعال" : "غیرفعال"}</span>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <>
+      <section className="space-y-5" aria-labelledby="users-heading">
+        <UserSummaryCards
+          total={users.length}
+          active={activeCount}
+          owners={activeOwnerCount}
+        />
 
-      {users.length === 0 && <p className="p-8 text-center text-sm text-slate-500">کاربری ثبت نشده است.</p>}
-    </div>
+        <div className="rounded-3xl border border-border bg-surface shadow-sm shadow-black/[0.02]">
+          <UserDirectoryToolbar
+            count={filteredUsers.length}
+            total={users.length}
+            canManage={canManageUsers}
+            query={query}
+            roleFilter={roleFilter}
+            showInactive={showInactive}
+            loading={loading}
+            onQueryChange={setQuery}
+            onRoleFilterChange={setRoleFilter}
+            onShowInactiveChange={setShowInactive}
+            onRefresh={() => void loadUsers()}
+            onCreate={openCreateDialog}
+          />
+
+          {error && (
+            <p
+              role="alert"
+              className="mx-4 mt-4 rounded-xl bg-danger/10 px-3 py-2 text-sm text-danger sm:mx-5"
+            >
+              {error}
+            </p>
+          )}
+          {notice && (
+            <p
+              role="status"
+              aria-live="polite"
+              className="mx-4 mt-4 rounded-xl bg-emerald-500/10 px-3 py-2 text-sm text-emerald-700 dark:text-emerald-300 sm:mx-5"
+            >
+              {notice}
+            </p>
+          )}
+
+          <UsersTable
+            users={filteredUsers}
+            canManage={canManageUsers}
+            hasAnyUsers={users.length > 0}
+            onEdit={openEditDialog}
+          />
+        </div>
+      </section>
+
+      <UserFormDialog
+        key={editingUser?.id ?? "new-user"}
+        open={dialogOpen}
+        user={editingUser}
+        onClose={() => setDialogOpen(false)}
+        onSaved={handleSaved}
+      />
+    </>
   );
 }

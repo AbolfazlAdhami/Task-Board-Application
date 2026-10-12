@@ -48,19 +48,19 @@ export default function LoginPage() {
   const passwordError = (formik.touched.password || formik.submitCount > 0) && formik.errors.password;
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-100 px-4 py-10">
-      <section className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-8 shadow-xl shadow-slate-200/60">
+    <main className="flex min-h-screen items-center justify-center bg-surface-raised px-4 py-10">
+      <section className="w-full max-w-md rounded-3xl border border-border bg-surface p-8 shadow-xl shadow-slate-200/60">
         <p className="mb-2 text-sm font-semibold text-indigo-600">تسک‌برد</p>
-        <h1 className="text-2xl font-bold text-slate-900">ورود به حساب</h1>
-        <p className="mt-2 text-sm text-slate-500">برای ادامه، اطلاعات حساب کاربری‌ات را وارد کن.</p>
+        <h1 className="text-2xl font-bold text-foreground">ورود به حساب</h1>
+        <p className="mt-2 text-sm  text-muted">برای ادامه، اطلاعات حساب کاربری‌ات را وارد کن.</p>
 
         <form className="mt-8 space-y-5" onSubmit={formik.handleSubmit} noValidate>
           <div>
-            <label className="mb-2 block text-sm font-medium text-slate-700" htmlFor="email">
+            <label className="mb-2 block text-sm font-medium text-foreground" htmlFor="email">
               ایمیل
             </label>
             <input
-              className="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+              className="w-full rounded-xl border border-border px-4 py-3 text-foreground outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
               id="email"
               name="email"
               type="email"
@@ -79,11 +79,11 @@ export default function LoginPage() {
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-medium text-slate-700" htmlFor="password">
+            <label className="mb-2 block text-sm font-medium text-foreground" htmlFor="password">
               گذرواژه
             </label>
             <input
-              className="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+              className="w-full rounded-xl border border-border  px-4 py-3 text-foreground outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
               id="password"
               name="password"
               type="password"

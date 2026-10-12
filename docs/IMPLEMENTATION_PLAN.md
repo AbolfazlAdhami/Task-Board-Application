@@ -43,10 +43,10 @@ This is the staged execution plan for the hiring assignment. Complete the stages
 
 ## Stage 6 — Persian RTL frontend
 
-- [ ] Build the task board, filtering by status and assignee, and role-aware user actions.
-- [ ] Use Headless UI Dialog for create/edit and Listbox/Menu for selections/actions.
+- [x] Build the task board, filtering by status and assignee, and role-aware user actions.
+- [x] Use Headless UI Dialog for create/edit and Listbox/Menu for selections/actions.
 - [ ] Verify keyboard navigation, focus handling, RTL layout, and accessible labels.
-- [ ] Use the Next.js `/api/v1/*` proxy for all browser requests; never call NestJS directly from the browser.
+- [x] Use the Next.js `/api/v1/*` proxy for all browser requests; never call NestJS directly from the browser.
 
 ## Stage 7 — Required tests and security review
 

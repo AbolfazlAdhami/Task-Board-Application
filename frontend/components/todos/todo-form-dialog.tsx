@@ -1,9 +1,25 @@
 "use client";
 
-import { Dialog, DialogBackdrop, DialogPanel, DialogTitle, Listbox, ListboxButton, ListboxLabel, ListboxOption, ListboxOptions } from "@headlessui/react";
+import {
+  Dialog,
+  DialogBackdrop,
+  DialogPanel,
+  DialogTitle,
+  Listbox,
+  ListboxButton,
+  ListboxLabel,
+  ListboxOption,
+  ListboxOptions,
+} from "@headlessui/react";
 import { useFormik } from "formik";
 import type { CurrentUser } from "@/lib/api/auth-api";
-import { todosApi, type Todo, type TodoInput, type TodoPriority, type TodoStatus } from "@/lib/api/todos-api";
+import {
+  todosApi,
+  type Todo,
+  type TodoInput,
+  type TodoPriority,
+  type TodoStatus,
+} from "@/lib/api/todos-api";
 import type { UserSummary } from "@/lib/api/users-api";
 import type { TiptapDocument } from "@/lib/api/tiptap-document";
 import { RichTextEditor } from "./rich-text-editor";
@@ -25,23 +41,38 @@ type SelectOption = {
   disabled?: boolean;
 };
 
-function FormSelect({ label, value, options, onChange }: { label: string; value: string; options: SelectOption[]; onChange: (value: string) => void }) {
+function FormSelect({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  options: SelectOption[];
+  onChange: (value: string) => void;
+}) {
   const selectedLabel = options.find((option) => option.value === value)?.label;
 
   return (
     <Listbox value={value} onChange={onChange}>
-      <ListboxLabel className="mb-2 block text-sm font-semibold text-slate-700">{label}</ListboxLabel>
-      <ListboxButton className="flex w-full items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3 text-right text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
+      <ListboxLabel className="mb-2 block text-sm font-semibold text-foreground">
+        {label}
+      </ListboxLabel>
+      <ListboxButton className="flex w-full items-center justify-between rounded-xl border border-border bg-surface px-4 py-3 text-right text-sm text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring">
         <span>{selectedLabel ?? "انتخاب کنید"}</span>
         <span aria-hidden="true">⌄</span>
       </ListboxButton>
-      <ListboxOptions anchor="bottom end" className="z-60 mt-2 max-h-56 w-[var(--button-width)] overflow-auto rounded-xl border border-slate-200 bg-white p-1 shadow-xl focus:outline-none">
+      <ListboxOptions
+        anchor="bottom end"
+        className="z-60 mt-2 max-h-56 w-[var(--button-width)] overflow-auto rounded-xl border border-border bg-surface p-1 shadow-xl focus:outline-none"
+      >
         {options.map((option) => (
           <ListboxOption
             key={option.value || "unassigned"}
             value={option.value}
             disabled={option.disabled}
-            className="cursor-pointer rounded-lg px-3 py-2 text-sm text-slate-700 data-[focus]:bg-indigo-50 data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50"
+            className="cursor-pointer rounded-lg px-3 py-2 text-sm text-foreground data-[focus]:bg-surface-raised data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50"
           >
             {option.label}
           </ListboxOption>
@@ -66,7 +97,10 @@ export function TodoFormDialog({
   onClose: () => void;
   onSaved: (todo: Todo) => void;
 }) {
-  const assignableUsers = currentUser.role === "member" ? [{ id: currentUser.userId, displayName: "من", isActive: true }] : users.filter((user) => user.isActive);
+  const assignableUsers =
+    currentUser.role === "member"
+      ? [{ id: currentUser.userId, displayName: "من", isActive: true }]
+      : users.filter((user) => user.isActive);
 
   const assigneeOptions: SelectOption[] = [
     { value: NO_ASSIGNEE, label: "بدون مسئول" },
@@ -77,8 +111,11 @@ export function TodoFormDialog({
   ];
 
   const existingAssignee = task?.assignedTo ?? NO_ASSIGNEE;
-  
-  if (task?.assignedTo && !assigneeOptions.some((option) => option.value === task.assignedTo)) {
+
+  if (
+    task?.assignedTo &&
+    !assigneeOptions.some((option) => option.value === task.assignedTo)
+  ) {
     assigneeOptions.push({
       value: task.assignedTo,
       label: "مسئول فعلی",
@@ -100,7 +137,8 @@ export function TodoFormDialog({
     validate(values) {
       const errors: Partial<Record<keyof FormValues, string>> = {};
       if (!values.title.trim()) errors.title = "عنوان وظیفه الزامی است.";
-      if (values.title.length > 200) errors.title = "عنوان حداکثر ۲۰۰ نویسه باشد.";
+      if (values.title.length > 200)
+        errors.title = "عنوان حداکثر ۲۰۰ نویسه باشد.";
       return errors;
     },
     async onSubmit(values, helpers) {
@@ -118,7 +156,9 @@ export function TodoFormDialog({
       }
 
       try {
-        const saved = task ? await todosApi.update(task.id, input) : await todosApi.create(input as TodoInput);
+        const saved = task
+          ? await todosApi.update(task.id, input)
+          : await todosApi.create(input as TodoInput);
 
         onSaved(saved);
       } catch {
@@ -151,18 +191,22 @@ export function TodoFormDialog({
       <DialogBackdrop className="fixed inset-0 bg-slate-950/40" />
       <div className="fixed inset-0 w-screen overflow-y-auto p-4">
         <div className="flex min-h-full items-center justify-center">
-          <DialogPanel className="w-full max-w-2xl rounded-3xl bg-white p-5 shadow-2xl sm:p-7">
+          <DialogPanel className="w-full max-w-2xl rounded-3xl bg-surface p-5 shadow-2xl sm:p-7">
             <div className="mb-6 flex items-start justify-between gap-4">
               <div>
-                <DialogTitle className="text-xl font-black text-slate-900">{task ? "ویرایش وظیفه" : "وظیفهٔ جدید"}</DialogTitle>
-                <p className="mt-1 text-sm text-slate-500">شرح به شکل سند TipTap ذخیره می‌شود.</p>
+                <DialogTitle className="text-lg font-bold text-foreground">
+                  {task ? "ویرایش وظیفه" : "وظیفهٔ جدید"}
+                </DialogTitle>
+                <p className="mt-1 text-xs text-muted">
+                  شرح به شکل سند TipTap ذخیره می‌شود.
+                </p>
               </div>
               <button
                 type="button"
                 aria-label="بستن پنجره"
                 disabled={formik.isSubmitting}
                 onClick={onClose}
-                className="rounded-lg px-3 py-2 text-slate-500 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                className="rounded-lg px-3 py-2 text-muted transition-colors hover:bg-surface-raised focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 ✕
               </button>
@@ -170,7 +214,10 @@ export function TodoFormDialog({
 
             <form onSubmit={formik.handleSubmit} className="space-y-5">
               <div>
-                <label htmlFor="todo-title" className="mb-2 block text-sm font-semibold text-slate-700">
+                <label
+                  htmlFor="todo-title"
+                  className="mb-2 block text-sm font-semibold text-foreground"
+                >
                   عنوان
                 </label>
                 <input
@@ -178,21 +225,45 @@ export function TodoFormDialog({
                   id="todo-title"
                   autoFocus
                   maxLength={200}
-                  className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                  className="w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 />
                 {formik.touched.title && formik.errors.title && (
-                  <p role="alert" className="mt-1 text-xs text-rose-700">
+                  <p role="alert" className="mt-1 text-xs text-danger">
                     {formik.errors.title}
                   </p>
                 )}
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
-                <FormSelect label="وضعیت" value={formik.values.status} options={statusOptions} onChange={(value) => void formik.setFieldValue("status", value)} />
-                <FormSelect label="اولویت" value={formik.values.priority} options={priorityOptions} onChange={(value) => void formik.setFieldValue("priority", value)} />
-                <FormSelect label="مسئول" value={formik.values.assignedTo} options={assigneeOptions} onChange={(value) => void formik.setFieldValue("assignedTo", value)} />
+                <FormSelect
+                  label="وضعیت"
+                  value={formik.values.status}
+                  options={statusOptions}
+                  onChange={(value) =>
+                    void formik.setFieldValue("status", value)
+                  }
+                />
+                <FormSelect
+                  label="اولویت"
+                  value={formik.values.priority}
+                  options={priorityOptions}
+                  onChange={(value) =>
+                    void formik.setFieldValue("priority", value)
+                  }
+                />
+                <FormSelect
+                  label="مسئول"
+                  value={formik.values.assignedTo}
+                  options={assigneeOptions}
+                  onChange={(value) =>
+                    void formik.setFieldValue("assignedTo", value)
+                  }
+                />
                 <div>
-                  <label htmlFor="todo-due-date" className="mb-2 block text-sm font-semibold text-slate-700">
+                  <label
+                    htmlFor="todo-due-date"
+                    className="mb-2 block text-sm font-semibold text-foreground"
+                  >
                     مهلت
                   </label>
                   <input
@@ -200,13 +271,15 @@ export function TodoFormDialog({
                     type="date"
                     dir="ltr"
                     {...formik.getFieldProps("dueDate")}
-                    className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                    className="w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   />
                 </div>
               </div>
 
               <div>
-                <p className="mb-2 text-sm font-semibold text-slate-700">شرح</p>
+                <p className="mb-2 text-sm font-semibold text-foreground">
+                  شرح
+                </p>
                 <RichTextEditor
                   key={task?.id ?? "new-task"}
                   value={formik.values.description}
@@ -217,16 +290,28 @@ export function TodoFormDialog({
               </div>
 
               {formik.status && (
-                <p role="alert" className="rounded-xl bg-rose-50 p-3 text-sm text-rose-700">
+                <p
+                  role="alert"
+                  className="rounded-xl bg-danger/10 p-3 text-sm text-danger"
+                >
                   {formik.status}
                 </p>
               )}
 
-              <div className="flex justify-end gap-3 border-t border-slate-100 pt-4">
-                <button type="button" disabled={formik.isSubmitting} onClick={onClose} className="rounded-xl px-4 py-3 text-sm font-semibold text-slate-600 hover:bg-slate-100">
+              <div className="flex justify-end gap-3 border-t border-border pt-4">
+                <button
+                  type="button"
+                  disabled={formik.isSubmitting}
+                  onClick={onClose}
+                  className="rounded-xl px-4 py-3 text-sm font-semibold text-muted transition-colors hover:bg-surface-raised"
+                >
                   انصراف
                 </button>
-                <button type="submit" disabled={formik.isSubmitting} className="rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white disabled:opacity-50">
+                <button
+                  type="submit"
+                  disabled={formik.isSubmitting}
+                  className="rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:cursor-wait disabled:opacity-50"
+                >
                   {formik.isSubmitting ? "در حال ذخیره…" : "ذخیره"}
                 </button>
               </div>

@@ -4,9 +4,11 @@ export default function UsersPage() {
   return (
     <section>
       <div className="mb-6">
-        <p className="text-sm font-semibold text-indigo-700">اعضای فضای کار</p>
-        <h2 className="mt-2 text-2xl font-black text-slate-900">کاربران</h2>
-        <p className="mt-2 text-sm text-slate-500">فهرست کاربران و نقش دسترسی آن‌ها</p>
+        <p className="text-xs font-semibold text-primary">فضای کار تیم</p>
+        <h2 className="mt-1.5 text-xl font-bold text-foreground">کاربران</h2>
+        <p className="mt-1.5 text-sm text-muted">
+          فهرست اعضا و مدیریت دسترسی‌های فضای کار
+        </p>
       </div>
       <UsersList />
     </section>
