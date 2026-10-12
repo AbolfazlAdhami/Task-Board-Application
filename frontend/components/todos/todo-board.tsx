@@ -58,22 +58,14 @@ export function TodoBoard() {
   }
 
   function handleDragEnd(event: DragEndEvent) {
-    if (
-      event.canceled ||
-      currentUser?.role !== "owner" ||
-      statusChangePending
-    ) {
+    if (event.canceled || currentUser?.role !== "owner" || statusChangePending) {
       return;
     }
 
     const todoId = event.operation.source?.data.todoId;
     const nextStatus = event.operation.target?.data.status;
 
-    if (
-      typeof todoId !== "string" ||
-      typeof nextStatus !== "string" ||
-      !columns.includes(nextStatus as TodoStatus)
-    ) {
+    if (typeof todoId !== "string" || typeof nextStatus !== "string" || !columns.includes(nextStatus as TodoStatus)) {
       return;
     }
 
@@ -86,38 +78,22 @@ export function TodoBoard() {
     setStatusChangeError("");
     setStatusChangePending(true);
 
-    // نمایش فوری جابه‌جایی در برد
-    setTodos((current) =>
-      current.map((todo) =>
-        todo.id === todoId ? { ...todo, status: updatedStatus } : todo,
-      ),
-    );
+    setTodos((current) => current.map((todo) => (todo.id === todoId ? { ...todo, status: updatedStatus } : todo)));
 
     void todosApi
       .update(todoId, { status: updatedStatus })
       .then((savedTodo) => {
-        setTodos((current) =>
-          current.map((todo) => (todo.id === savedTodo.id ? savedTodo : todo)),
-        );
+        setTodos((current) => current.map((todo) => (todo.id === savedTodo.id ? savedTodo : todo)));
       })
       .catch(() => {
-        // اگر ذخیره‌سازی شکست خورد، کارت را به وضعیت قبلی برگردان
-        setTodos((current) =>
-          current.map((todo) =>
-            todo.id === todoId ? { ...todo, status: previousStatus } : todo,
-          ),
-        );
+        setTodos((current) => current.map((todo) => (todo.id === todoId ? { ...todo, status: previousStatus } : todo)));
         setStatusChangeError("تغییر وضعیت ذخیره نشد؛ دوباره تلاش کنید.");
       })
       .finally(() => setStatusChangePending(false));
   }
 
   function handleSaved(saved: Todo) {
-    setTodos((current) =>
-      current.some((todo) => todo.id === saved.id)
-        ? current.map((todo) => (todo.id === saved.id ? saved : todo))
-        : [saved, ...current],
-    );
+    setTodos((current) => (current.some((todo) => todo.id === saved.id) ? current.map((todo) => (todo.id === saved.id ? saved : todo)) : [saved, ...current]));
     setFormOpen(false);
     setEditingTodo(null);
   }
@@ -141,10 +117,7 @@ export function TodoBoard() {
     if (!currentUser) return false;
     if (currentUser.role !== "member") return true;
 
-    return (
-      todo.createdBy === currentUser.userId ||
-      todo.assignedTo === currentUser.userId
-    );
+    return todo.createdBy === currentUser.userId || todo.assignedTo === currentUser.userId;
   }
 
   useEffect(() => {
@@ -152,10 +125,7 @@ export function TodoBoard() {
 
     async function load() {
       try {
-        const [me, taskList] = await Promise.all([
-          authApi.me(),
-          todosApi.list(),
-        ]);
+        const [me, taskList] = await Promise.all([authApi.me(), todosApi.list()]);
 
         if (!active) return;
 
@@ -188,10 +158,7 @@ export function TodoBoard() {
     const options = [{ value: "all", label: "همهٔ مسئول‌ها" }];
 
     if (currentUser?.role === "member") {
-      options.push(
-        { value: "mine", label: "مسئول: من" },
-        { value: "unassigned", label: "بدون مسئول" },
-      );
+      options.push({ value: "mine", label: "مسئول: من" }, { value: "unassigned", label: "بدون مسئول" });
       return options;
     }
 
@@ -205,25 +172,17 @@ export function TodoBoard() {
   const filteredTodos = useMemo(
     () =>
       todos.filter((todo) => {
-        const matchesStatus =
-          statusFilter === "all" || todo.status === statusFilter;
+        const matchesStatus = statusFilter === "all" || todo.status === statusFilter;
 
         const matchesAssignee =
-          assigneeFilter === "all" ||
-          (assigneeFilter === "unassigned" && todo.assignedTo === null) ||
-          (assigneeFilter === "mine" &&
-            todo.assignedTo === currentUser?.userId) ||
-          todo.assignedTo === assigneeFilter;
+          assigneeFilter === "all" || (assigneeFilter === "unassigned" && todo.assignedTo === null) || (assigneeFilter === "mine" && todo.assignedTo === currentUser?.userId) || todo.assignedTo === assigneeFilter;
 
         return matchesStatus && matchesAssignee;
       }),
     [todos, statusFilter, assigneeFilter, currentUser],
   );
 
-  const userNames = useMemo(
-    () => new Map(users.map((user) => [user.id, user.displayName])),
-    [users],
-  );
+  const userNames = useMemo(() => new Map(users.map((user) => [user.id, user.displayName])), [users]);
 
   if (loading) {
     return <TodoBoardSkeleton />;
@@ -231,16 +190,9 @@ export function TodoBoard() {
 
   if (error) {
     return (
-      <div
-        role="alert"
-        className="rounded-2xl border border-danger/20 bg-danger/10 p-5 text-sm text-danger"
-      >
+      <div role="alert" className="rounded-2xl border border-danger/20 bg-danger/10 p-5 text-sm text-danger">
         {error}
-        <button
-          type="button"
-          onClick={() => window.location.reload()}
-          className="mr-3 font-bold underline"
-        >
+        <button type="button" onClick={() => window.location.reload()} className="mr-3 font-bold underline">
           تلاش دوباره
         </button>
       </div>
@@ -268,35 +220,17 @@ export function TodoBoard() {
       <DragDropProvider onDragEnd={handleDragEnd}>
         <div className="grid items-start gap-4 md:grid-cols-3">
           {columns.map((status) => {
-            const laneTodos = filteredTodos.filter(
-              (todo) => todo.status === status,
-            );
+            const laneTodos = filteredTodos.filter((todo) => todo.status === status);
 
             return (
-              <TodoColumn
-                key={status}
-                status={status}
-                count={laneTodos.length}
-                canDrop={currentUser?.role === "owner"}
-              >
+              <TodoColumn key={status} status={status} count={laneTodos.length} canDrop={currentUser?.role === "owner"}>
                 {laneTodos.map((todo) => (
                   <TodoCard
                     key={todo.id}
                     todo={todo}
-                    canDrag={
-                      currentUser?.role === "owner" && !statusChangePending
-                    }
-                    assigneeName={
-                      todo.assignedTo
-                        ? (userNames.get(todo.assignedTo) ??
-                          (todo.assignedTo === currentUser?.userId
-                            ? "من"
-                            : "عضو تیم"))
-                        : "بدون مسئول"
-                    }
-                    onEdit={
-                      canEditTodo(todo) ? () => openEditForm(todo) : undefined
-                    }
+                    canDrag={currentUser?.role === "owner" && !statusChangePending}
+                    assigneeName={todo.assignedTo ? (userNames.get(todo.assignedTo) ?? (todo.assignedTo === currentUser?.userId ? "من" : "عضو تیم")) : "بدون مسئول"}
+                    onEdit={canEditTodo(todo) ? () => openEditForm(todo) : undefined}
                     onDelete={
                       canDeleteTodo(todo)
                         ? () => {
@@ -307,21 +241,14 @@ export function TodoBoard() {
                     }
                   />
                 ))}
-                {laneTodos.length === 0 && (
-                  <p className="rounded-xl border border-dashed border-border px-3 py-7 text-center text-xs text-muted">
-                    وظیفه‌ای در این ستون نیست.
-                  </p>
-                )}
+                {laneTodos.length === 0 && <p className="rounded-xl border border-dashed border-border px-3 py-7 text-center text-xs text-muted">وظیفه‌ای در این ستون نیست.</p>}
               </TodoColumn>
             );
           })}
         </div>
       </DragDropProvider>
       {statusChangeError && (
-        <p
-          role="alert"
-          className="mb-4 rounded-xl border border-danger/20 bg-danger/10 p-3 text-sm text-danger"
-        >
+        <p role="alert" className="mb-4 rounded-xl border border-danger/20 bg-danger/10 p-3 text-sm text-danger">
           {statusChangeError}
         </p>
       )}
@@ -336,17 +263,7 @@ export function TodoBoard() {
         }}
         onConfirm={() => void handleDeleteTodo()}
       />
-      {currentUser && formOpen && (
-        <TodoFormDialog
-          key={editingTodo?.id ?? "new-task"}
-          open={formOpen}
-          task={editingTodo}
-          currentUser={currentUser}
-          users={users}
-          onClose={closeForm}
-          onSaved={handleSaved}
-        />
-      )}
+      {currentUser && formOpen && <TodoFormDialog key={editingTodo?.id ?? "new-task"} open={formOpen} task={editingTodo} currentUser={currentUser} users={users} onClose={closeForm} onSaved={handleSaved} />}
     </section>
   );
 }

@@ -49,7 +49,7 @@ export default function LoginPage() {
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-surface-raised px-4 py-10">
-      <section className="w-full max-w-md rounded-3xl border border-border bg-surface p-8 shadow-xl shadow-slate-200/60">
+      <section className="w-full max-w-md rounded-3xl border border-border bg-surface p-8 shadow-xl shadow-background">
         <p className="mb-2 text-sm font-semibold text-indigo-600">تسک‌برد</p>
         <h1 className="text-2xl font-bold text-foreground">ورود به حساب</h1>
         <p className="mt-2 text-sm  text-muted">برای ادامه، اطلاعات حساب کاربری‌ات را وارد کن.</p>
@@ -60,7 +60,7 @@ export default function LoginPage() {
               ایمیل
             </label>
             <input
-              className="w-full rounded-xl border border-border px-4 py-3 text-foreground outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+              className="w-full rounded-xl border border-border text-left px-4 py-3 text-foreground outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
               id="email"
               name="email"
               type="email"
@@ -83,7 +83,7 @@ export default function LoginPage() {
               گذرواژه
             </label>
             <input
-              className="w-full rounded-xl border border-border  px-4 py-3 text-foreground outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+              className="w-full rounded-xl border border-border text-left  px-4 py-3 text-foreground outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
               id="password"
               name="password"
               type="password"

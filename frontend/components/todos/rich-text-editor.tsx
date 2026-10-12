@@ -30,12 +30,7 @@ const extensions = [
 
       try {
         const url = new URL(value);
-        return (
-          (url.protocol === "http:" || url.protocol === "https:") &&
-          Boolean(url.hostname) &&
-          !url.username &&
-          !url.password
-        );
+        return (url.protocol === "http:" || url.protocol === "https:") && Boolean(url.hostname) && !url.username && !url.password;
       } catch {
         return false;
       }
@@ -43,17 +38,7 @@ const extensions = [
   }),
 ];
 
-function ToolbarButton({
-  label,
-  pressed,
-  onClick,
-  children,
-}: {
-  label: string;
-  pressed?: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
+function ToolbarButton({ label, pressed, onClick, children }: { label: string; pressed?: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
     <button
       type="button"
@@ -68,13 +53,7 @@ function ToolbarButton({
   );
 }
 
-export function RichTextEditor({
-  value,
-  onChange,
-}: {
-  value: TiptapDocument;
-  onChange: (value: TiptapDocument) => void;
-}) {
+export function RichTextEditor({ value, onChange }: { value: TiptapDocument; onChange: (value: TiptapDocument) => void }) {
   const [linkValue, setLinkValue] = useState("");
   const [linkError, setLinkError] = useState("");
 
@@ -131,52 +110,23 @@ export function RichTextEditor({
 
   return (
     <div className="overflow-hidden rounded-xl border border-border bg-surface text-foreground shadow-sm">
-      <div
-        aria-label="ابزارهای قالب‌بندی"
-        className="flex flex-wrap gap-2 border-b border-border bg-background p-3"
-      >
-        <ToolbarButton
-          label="پررنگ"
-          pressed={editor.isActive("bold")}
-          onClick={() => editor.chain().focus().toggleBold().run()}
-        >
-          <strong>ب</strong>
+      <div aria-label="ابزارهای قالب‌بندی" className="flex flex-wrap gap-2 border-b border-border bg-background p-3">
+        <ToolbarButton label="پررنگ" pressed={editor.isActive("bold")} onClick={() => editor.chain().focus().toggleBold().run()}>
+          <strong>BOLD</strong>
         </ToolbarButton>
-        <ToolbarButton
-          label="کج"
-          pressed={editor.isActive("italic")}
-          onClick={() => editor.chain().focus().toggleItalic().run()}
-        >
-          <em>ک</em>
+        <ToolbarButton label="کج" pressed={editor.isActive("italic")} onClick={() => editor.chain().focus().toggleItalic().run()}>
+          <em>italic</em>
         </ToolbarButton>
-        <ToolbarButton
-          label="عنوان"
-          pressed={editor.isActive("heading", { level: 2 })}
-          onClick={() =>
-            editor.chain().focus().toggleHeading({ level: 2 }).run()
-          }
-        >
+        <ToolbarButton label="عنوان" pressed={editor.isActive("heading", { level: 2 })} onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}>
           H2
         </ToolbarButton>
-        <ToolbarButton
-          label="فهرست نشانه‌دار"
-          pressed={editor.isActive("bulletList")}
-          onClick={() => editor.chain().focus().toggleBulletList().run()}
-        >
+        <ToolbarButton label="فهرست نشانه‌دار" pressed={editor.isActive("bulletList")} onClick={() => editor.chain().focus().toggleBulletList().run()}>
           • فهرست
         </ToolbarButton>
-        <ToolbarButton
-          label="فهرست شماره‌دار"
-          pressed={editor.isActive("orderedList")}
-          onClick={() => editor.chain().focus().toggleOrderedList().run()}
-        >
+        <ToolbarButton label="فهرست شماره‌دار" pressed={editor.isActive("orderedList")} onClick={() => editor.chain().focus().toggleOrderedList().run()}>
           ۱. فهرست
         </ToolbarButton>
-        <ToolbarButton
-          label="نقل‌قول"
-          pressed={editor.isActive("blockquote")}
-          onClick={() => editor.chain().focus().toggleBlockquote().run()}
-        >
+        <ToolbarButton label="نقل‌قول" pressed={editor.isActive("blockquote")} onClick={() => editor.chain().focus().toggleBlockquote().run()}>
           نقل‌قول
         </ToolbarButton>
       </div>
@@ -221,7 +171,7 @@ export function RichTextPreview({ value }: { value: TiptapDocument }) {
   if (!editor) return null;
 
   return (
-    <div className="break-words text-sm leading-6 text-muted [&_h1]:text-xl [&_h1]:font-bold [&_h2]:text-lg [&_h2]:font-bold [&_h3]:font-bold [&_ul]:list-disc [&_ul]:pr-5 [&_ol]:list-decimal [&_ol]:pr-5 [&_blockquote]:border-r-2 [&_blockquote]:border-primary/50 [&_blockquote]:pr-3 [&_a]:text-primary [&_a]:underline">
+    <div className="wrap-break-word text-sm leading-6 text-muted [&_h1]:text-xl [&_h1]:font-bold [&_h2]:text-lg [&_h2]:font-bold [&_h3]:font-bold [&_ul]:list-disc [&_ul]:pr-5 [&_ol]:list-decimal [&_ol]:pr-5 [&_blockquote]:border-r-2 [&_blockquote]:border-primary/50 [&_blockquote]:pr-3 [&_a]:text-primary [&_a]:underline">
       <EditorContent editor={editor} />
     </div>
   );

@@ -160,7 +160,7 @@ export function UsersList() {
           owners={activeOwnerCount}
         />
 
-        <div className="rounded-3xl border border-border bg-surface shadow-sm shadow-black/[0.02]">
+        <div className="rounded-3xl border border-border bg-surface shadow-sm shadow-black/2">
           <UserDirectoryToolbar
             count={filteredUsers.length}
             total={users.length}

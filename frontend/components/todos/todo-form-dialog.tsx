@@ -1,25 +1,9 @@
 "use client";
 
-import {
-  Dialog,
-  DialogBackdrop,
-  DialogPanel,
-  DialogTitle,
-  Listbox,
-  ListboxButton,
-  ListboxLabel,
-  ListboxOption,
-  ListboxOptions,
-} from "@headlessui/react";
+import { Dialog, DialogBackdrop, DialogPanel, DialogTitle, Listbox, ListboxButton, ListboxOption, ListboxOptions } from "@headlessui/react";
 import { useFormik } from "formik";
 import type { CurrentUser } from "@/lib/api/auth-api";
-import {
-  todosApi,
-  type Todo,
-  type TodoInput,
-  type TodoPriority,
-  type TodoStatus,
-} from "@/lib/api/todos-api";
+import { todosApi, type Todo, type TodoInput, type TodoPriority, type TodoStatus } from "@/lib/api/todos-api";
 import type { UserSummary } from "@/lib/api/users-api";
 import type { TiptapDocument } from "@/lib/api/tiptap-document";
 import { RichTextEditor } from "./rich-text-editor";
@@ -41,43 +25,30 @@ type SelectOption = {
   disabled?: boolean;
 };
 
-function FormSelect({
-  label,
-  value,
-  options,
-  onChange,
-}: {
-  label: string;
-  value: string;
-  options: SelectOption[];
-  onChange: (value: string) => void;
-}) {
+function FormSelect({ label, value, options, onChange }: { label: string; value: string; options: SelectOption[]; onChange: (value: string) => void }) {
   const selectedLabel = options.find((option) => option.value === value)?.label;
 
   return (
     <Listbox value={value} onChange={onChange}>
-      <ListboxLabel className="mb-2 block text-sm font-semibold text-foreground">
-        {label}
-      </ListboxLabel>
-      <ListboxButton className="flex w-full items-center justify-between rounded-xl border border-border bg-surface px-4 py-3 text-right text-sm text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-        <span>{selectedLabel ?? "انتخاب کنید"}</span>
-        <span aria-hidden="true">⌄</span>
-      </ListboxButton>
-      <ListboxOptions
-        anchor="bottom end"
-        className="z-60 mt-2 max-h-56 w-[var(--button-width)] overflow-auto rounded-xl border border-border bg-surface p-1 shadow-xl focus:outline-none"
-      >
-        {options.map((option) => (
-          <ListboxOption
-            key={option.value || "unassigned"}
-            value={option.value}
-            disabled={option.disabled}
-            className="cursor-pointer rounded-lg px-3 py-2 text-sm text-foreground data-[focus]:bg-surface-raised data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50"
-          >
-            {option.label}
-          </ListboxOption>
-        ))}
-      </ListboxOptions>
+      <div className="flex flex-col">
+        <label className="mb-2 inline text-sm font-semibold text-foreground">{label}</label>
+        <ListboxButton className="flex w-full items-center justify-between rounded-xl border border-border bg-surface px-4 py-3 text-right text-sm text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+          <span>{selectedLabel ?? "انتخاب کنید"}</span>
+          <span aria-hidden="true">⌄</span>
+        </ListboxButton>
+        <ListboxOptions anchor="bottom end" className="z-60 mt-2 max-h-56 w-(--button-width) overflow-auto rounded-xl border border-border bg-surface p-1 shadow-xl focus:outline-none">
+          {options.map((option) => (
+            <ListboxOption
+              key={option.value || "unassigned"}
+              value={option.value}
+              disabled={option.disabled}
+              className="cursor-pointer rounded-lg px-3 py-2 text-sm text-foreground data-focus:bg-surface-raised data-disabled:cursor-not-allowed data-disabled:opacity-50"
+            >
+              {option.label}
+            </ListboxOption>
+          ))}
+        </ListboxOptions>
+      </div>
     </Listbox>
   );
 }
@@ -97,10 +68,7 @@ export function TodoFormDialog({
   onClose: () => void;
   onSaved: (todo: Todo) => void;
 }) {
-  const assignableUsers =
-    currentUser.role === "member"
-      ? [{ id: currentUser.userId, displayName: "من", isActive: true }]
-      : users.filter((user) => user.isActive);
+  const assignableUsers = currentUser.role === "member" ? [{ id: currentUser.userId, displayName: "من", isActive: true }] : users.filter((user) => user.isActive);
 
   const assigneeOptions: SelectOption[] = [
     { value: NO_ASSIGNEE, label: "بدون مسئول" },
@@ -112,10 +80,7 @@ export function TodoFormDialog({
 
   const existingAssignee = task?.assignedTo ?? NO_ASSIGNEE;
 
-  if (
-    task?.assignedTo &&
-    !assigneeOptions.some((option) => option.value === task.assignedTo)
-  ) {
+  if (task?.assignedTo && !assigneeOptions.some((option) => option.value === task.assignedTo)) {
     assigneeOptions.push({
       value: task.assignedTo,
       label: "مسئول فعلی",
@@ -137,8 +102,7 @@ export function TodoFormDialog({
     validate(values) {
       const errors: Partial<Record<keyof FormValues, string>> = {};
       if (!values.title.trim()) errors.title = "عنوان وظیفه الزامی است.";
-      if (values.title.length > 200)
-        errors.title = "عنوان حداکثر ۲۰۰ نویسه باشد.";
+      if (values.title.length > 200) errors.title = "عنوان حداکثر ۲۰۰ نویسه باشد.";
       return errors;
     },
     async onSubmit(values, helpers) {
@@ -156,9 +120,7 @@ export function TodoFormDialog({
       }
 
       try {
-        const saved = task
-          ? await todosApi.update(task.id, input)
-          : await todosApi.create(input as TodoInput);
+        const saved = task ? await todosApi.update(task.id, input) : await todosApi.create(input as TodoInput);
 
         onSaved(saved);
       } catch {
@@ -194,12 +156,8 @@ export function TodoFormDialog({
           <DialogPanel className="w-full max-w-2xl rounded-3xl bg-surface p-5 shadow-2xl sm:p-7">
             <div className="mb-6 flex items-start justify-between gap-4">
               <div>
-                <DialogTitle className="text-lg font-bold text-foreground">
-                  {task ? "ویرایش وظیفه" : "وظیفهٔ جدید"}
-                </DialogTitle>
-                <p className="mt-1 text-xs text-muted">
-                  شرح به شکل سند TipTap ذخیره می‌شود.
-                </p>
+                <DialogTitle className="text-lg font-bold text-foreground">{task ? "ویرایش وظیفه" : "وظیفهٔ جدید"}</DialogTitle>
+                <p className="mt-1 text-xs text-muted">شرح به شکل سند TipTap ذخیره می‌شود.</p>
               </div>
               <button
                 type="button"
@@ -214,10 +172,7 @@ export function TodoFormDialog({
 
             <form onSubmit={formik.handleSubmit} className="space-y-5">
               <div>
-                <label
-                  htmlFor="todo-title"
-                  className="mb-2 block text-sm font-semibold text-foreground"
-                >
+                <label htmlFor="todo-title" className="mb-2 block text-sm font-semibold text-foreground">
                   عنوان
                 </label>
                 <input
@@ -235,35 +190,11 @@ export function TodoFormDialog({
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
-                <FormSelect
-                  label="وضعیت"
-                  value={formik.values.status}
-                  options={statusOptions}
-                  onChange={(value) =>
-                    void formik.setFieldValue("status", value)
-                  }
-                />
-                <FormSelect
-                  label="اولویت"
-                  value={formik.values.priority}
-                  options={priorityOptions}
-                  onChange={(value) =>
-                    void formik.setFieldValue("priority", value)
-                  }
-                />
-                <FormSelect
-                  label="مسئول"
-                  value={formik.values.assignedTo}
-                  options={assigneeOptions}
-                  onChange={(value) =>
-                    void formik.setFieldValue("assignedTo", value)
-                  }
-                />
+                <FormSelect label="وضعیت" value={formik.values.status} options={statusOptions} onChange={(value) => void formik.setFieldValue("status", value)} />
+                <FormSelect label="اولویت" value={formik.values.priority} options={priorityOptions} onChange={(value) => void formik.setFieldValue("priority", value)} />
+                <FormSelect label="مسئول" value={formik.values.assignedTo} options={assigneeOptions} onChange={(value) => void formik.setFieldValue("assignedTo", value)} />
                 <div>
-                  <label
-                    htmlFor="todo-due-date"
-                    className="mb-2 block text-sm font-semibold text-foreground"
-                  >
+                  <label htmlFor="todo-due-date" className="mb-2 block text-sm font-semibold text-foreground">
                     مهلت
                   </label>
                   <input
@@ -277,9 +208,7 @@ export function TodoFormDialog({
               </div>
 
               <div>
-                <p className="mb-2 text-sm font-semibold text-foreground">
-                  شرح
-                </p>
+                <p className="mb-2 text-sm font-semibold text-foreground">شرح</p>
                 <RichTextEditor
                   key={task?.id ?? "new-task"}
                   value={formik.values.description}
@@ -290,21 +219,13 @@ export function TodoFormDialog({
               </div>
 
               {formik.status && (
-                <p
-                  role="alert"
-                  className="rounded-xl bg-danger/10 p-3 text-sm text-danger"
-                >
+                <p role="alert" className="rounded-xl bg-danger/10 p-3 text-sm text-danger">
                   {formik.status}
                 </p>
               )}
 
               <div className="flex justify-end gap-3 border-t border-border pt-4">
-                <button
-                  type="button"
-                  disabled={formik.isSubmitting}
-                  onClick={onClose}
-                  className="rounded-xl px-4 py-3 text-sm font-semibold text-muted transition-colors hover:bg-surface-raised"
-                >
+                <button type="button" disabled={formik.isSubmitting} onClick={onClose} className="rounded-xl px-4 py-3 text-sm font-semibold text-muted transition-colors hover:bg-surface-raised">
                   انصراف
                 </button>
                 <button

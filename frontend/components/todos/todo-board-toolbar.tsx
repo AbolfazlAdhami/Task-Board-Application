@@ -15,27 +15,15 @@ type TodoBoardToolbarProps = {
   onCreate: () => void;
 };
 
-export function TodoBoardToolbar({
-  taskCount,
-  statusFilter,
-  assigneeFilter,
-  statusOptions,
-  assigneeOptions,
-  onStatusChange,
-  onAssigneeChange,
-  onCreate,
-}: TodoBoardToolbarProps) {
+export function TodoBoardToolbar({ taskCount, statusFilter, assigneeFilter, statusOptions, assigneeOptions, onStatusChange, onAssigneeChange, onCreate }: TodoBoardToolbarProps) {
   return (
-    <header className="mb-6 flex flex-col gap-5 rounded-3xl border border-border bg-surface p-5 shadow-sm shadow-black/[0.03] sm:p-6 lg:flex-row lg:items-end lg:justify-between">
+    <header className="mb-6 flex flex-col gap-5 rounded-3xl border border-border bg-surface p-5 shadow-sm shadow-black/3 sm:p-6 lg:flex-row lg:items-end lg:justify-between">
       <div>
         <p className="flex items-center gap-2 text-xs font-medium text-primary">
           <ListFilter aria-hidden="true" size={16} />
           فضای کار تیم
         </p>
-        <h2
-          id="board-title"
-          className="mt-2 text-xl font-bold tracking-tight text-foreground"
-        >
+        <h2 id="board-title" className="mt-2 text-xl font-bold tracking-tight text-foreground">
           برد وظایف
         </h2>
         <p className="mt-2 text-xs text-muted">نمایش {taskCount} وظیفه</p>
@@ -50,18 +38,8 @@ export function TodoBoardToolbar({
           <Plus aria-hidden="true" size={17} />
           وظیفهٔ جدید
         </button>
-        <TodoFilterListbox
-          label="فیلتر وضعیت"
-          value={statusFilter}
-          onChange={onStatusChange}
-          options={statusOptions}
-        />
-        <TodoFilterListbox
-          label="فیلتر مسئول"
-          value={assigneeFilter}
-          onChange={onAssigneeChange}
-          options={assigneeOptions}
-        />
+        <TodoFilterListbox label="فیلتر وضعیت" value={statusFilter} onChange={onStatusChange} options={statusOptions} />
+        <TodoFilterListbox label="فیلتر مسئول" value={assigneeFilter} onChange={onAssigneeChange} options={assigneeOptions} />
       </div>
     </header>
   );
