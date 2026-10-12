@@ -40,6 +40,13 @@ async function bootstrap() {
     next();
   });
 
+  app.enableCors({
+    origin: process.env.FRONTEND_ORIGIN ?? 'http://localhost:3000',
+    credentials: true,
+    methods: ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type'],
+  });
+
   await app.listen(port);
   bootstrapLogger.log(`Listening on port ${port}`);
 }

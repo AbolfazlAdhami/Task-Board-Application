@@ -13,3 +13,18 @@
 - The browser will call Next.js only; Next.js will proxy API calls to NestJS.
 
 PostgreSQL Compose configuration and database startup instructions will be recorded when that setup is added.
+
+## Backend browser CORS policy
+
+- Allow credentialed browser requests only from `http://localhost:3000` in local development.
+- Do not use a wildcard origin when cookies are enabled.
+- CORS is enforced by browsers; it does not authenticate or block direct `curl` and server-to-server requests. Nest remains responsible for authentication and authorization.
+- Browser code should continue to call the Next.js API proxy; the proxy's server-to-server calls are not restricted by browser CORS.
+
+## Backend health endpoint
+
+- Expose `GET /api/v1/health` as a public readiness check.
+- A healthy response means the NestJS app can respond and PostgreSQL passes a TypeORM health ping.
+- Return an unhealthy service response when the database check fails.
+- Do not expose credentials, connection strings, or internal error details in the response.
+- Exclude the probe from global rate limiting so routine health polling does not consume client request limits.

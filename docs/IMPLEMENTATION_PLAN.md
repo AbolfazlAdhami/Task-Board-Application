@@ -15,6 +15,7 @@ This is the staged execution plan for the hiring assignment. Complete the stages
 - [x] Add root package/workspace scripts and Node.js 24.15+ configuration.
 - [x] Add Docker Compose for PostgreSQL and environment examples without secrets.
 - [x] Add health checks and document local startup.
+- [ ] Add `GET /api/v1/health` to report application and PostgreSQL readiness.
 
 ## Stage 3 — Database model and migrations
 
@@ -31,6 +32,7 @@ This is the staged execution plan for the hiring assignment. Complete the stages
 - [ ] Reject disabled users at login and on every authenticated request, including old sessions.
 - [ ] Enforce owner, manager, and member permissions in NestJS; protect the last active owner.
 - [ ] Validate DTOs, reject unknown properties, and normalize error responses.
+- [ ] Restrict credentialed browser CORS to the configured frontend origin.
 
 ## Stage 5 — Tasks API and rich text validation
 
