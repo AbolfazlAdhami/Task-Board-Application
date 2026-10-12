@@ -81,7 +81,9 @@ export function DashboardShell({ children }: { children: ReactNode }) {
     );
   }
 
-  const visibleNavigation = navigation.filter((item) => !("privileged" in item) || user.role === "owner" || user.role === "manager");
+  const visibleNavigation = user ? navigation.filter((item) => !("privileged" in item) || user.role === "owner" || user.role === "manager") : [];
+
+  const contentReady = Boolean(user) && !loading;
 
   const pageTitle = pathname.startsWith("/users") ? "کاربران" : "وظایف";
 
@@ -163,7 +165,22 @@ export function DashboardShell({ children }: { children: ReactNode }) {
         )}
 
         <main id="main-content" className="mx-auto w-full max-w-[1440px] p-4 sm:p-8">
-          {children}
+          {loading && (
+            <p role="status" className="mb-4 text-sm text-slate-500">
+              در حال بررسی نشست کاربری…
+            </p>
+          )}
+
+          {!loading && !user && (
+            <section className="mb-4 rounded-2xl bg-white p-6">
+              <h2 className="font-bold">برای ادامه وارد شوید</h2>
+              <Link href="/login" className="mt-3 inline-block font-semibold text-indigo-700">
+                رفتن به صفحهٔ ورود
+              </Link>
+            </section>
+          )}
+
+          <div hidden={!contentReady}>{children}</div>
         </main>
       </div>
     </div>

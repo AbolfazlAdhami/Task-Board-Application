@@ -5,6 +5,8 @@ import { useEffect, useMemo, useState } from "react";
 import { authApi, type CurrentUser } from "../../lib/api/auth-api";
 import { todosApi, type Todo, type TodoStatus } from "../../lib/api/todos-api";
 import { usersApi, type UserSummary } from "../../lib/api/users-api";
+import { TodoFormDialog } from "./todo-form-dialog";
+import { RichTextPreview } from "./rich-text-editor";
 
 type StatusFilter = "all" | TodoStatus;
 
@@ -54,15 +56,19 @@ function FilterListbox({ label, value, options, onChange }: { label: string; val
   );
 }
 
-function TodoCard({ todo, assigneeName }: { todo: Todo; assigneeName: string }) {
+function TodoCard({ todo, assigneeName, onEdit }: { todo: Todo; assigneeName: string; onEdit?: () => void }) {
   const dueDate = todo.dueDate ? new Intl.DateTimeFormat("fa-IR", { dateStyle: "medium" }).format(new Date(`${todo.dueDate}T00:00:00`)) : null;
-
   return (
     <article aria-label={`وظیفه: ${todo.title}`} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
       <div className="flex items-start justify-between gap-3">
         <h3 className="font-bold leading-7 text-slate-900">{todo.title}</h3>
         <span className="shrink-0 rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700">اولویت {priorityLabels[todo.priority]}</span>
       </div>
+      {todo.description.content.length > 0 && (
+        <div className="mt-3 border-t border-slate-100 pt-3">
+          <RichTextPreview value={todo.description} />
+        </div>
+      )}
       <dl className="mt-4 space-y-2 text-xs text-slate-500">
         <div className="flex justify-between gap-3">
           <dt>مسئول</dt>
@@ -77,6 +83,18 @@ function TodoCard({ todo, assigneeName }: { todo: Todo; assigneeName: string }) 
           </div>
         )}
       </dl>
+      {onEdit && (
+        <div className="mt-4 flex justify-end border-t border-slate-100 pt-3">
+          <button
+            type="button"
+            aria-label={`ویرایش ${todo.title}`}
+            onClick={onEdit}
+            className="rounded-lg px-3 py-2 text-sm font-semibold text-indigo-700 hover:bg-indigo-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+          >
+            ویرایش
+          </button>
+        </div>
+      )}
     </article>
   );
 }
@@ -89,6 +107,36 @@ export function TodoBoard() {
   const [assigneeFilter, setAssigneeFilter] = useState("all");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [formOpen, setFormOpen] = useState(false);
+  const [editingTodo, setEditingTodo] = useState<Todo | null>(null);
+
+  function handleSaved(saved: Todo) {
+    setTodos((current) => (current.some((todo) => todo.id === saved.id) ? current.map((todo) => (todo.id === saved.id ? saved : todo)) : [saved, ...current]));
+    setFormOpen(false);
+    setEditingTodo(null);
+  }
+
+  function closeForm() {
+    setFormOpen(false);
+    setEditingTodo(null);
+  }
+
+  function openCreateForm() {
+    setEditingTodo(null);
+    setFormOpen(true);
+  }
+
+  function openEditForm(todo: Todo) {
+    setEditingTodo(todo);
+    setFormOpen(true);
+  }
+
+  function canEditTodo(todo: Todo) {
+    if (!currentUser) return false;
+    if (currentUser.role !== "member") return true;
+
+    return todo.createdBy === currentUser.userId || todo.assignedTo === currentUser.userId;
+  }
 
   useEffect(() => {
     let active = true;
@@ -185,6 +233,13 @@ export function TodoBoard() {
         </div>
 
         <div className="flex flex-wrap gap-3">
+          <button
+            type="button"
+            onClick={openCreateForm}
+            className="rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
+          >
+            وظیفهٔ جدید
+          </button>
           <FilterListbox
             label="فیلتر وضعیت"
             value={statusFilter}
@@ -216,7 +271,12 @@ export function TodoBoard() {
 
               <div className="space-y-3">
                 {laneTodos.map((todo) => (
-                  <TodoCard key={todo.id} todo={todo} assigneeName={todo.assignedTo ? (userNames.get(todo.assignedTo) ?? (todo.assignedTo === currentUser?.userId ? "من" : "عضو تیم")) : "بدون مسئول"} />
+                  <TodoCard
+                    key={todo.id}
+                    todo={todo}
+                    assigneeName={todo.assignedTo ? (userNames.get(todo.assignedTo) ?? (todo.assignedTo === currentUser?.userId ? "من" : "عضو تیم")) : "بدون مسئول"}
+                    onEdit={canEditTodo(todo) ? () => openEditForm(todo) : undefined}
+                  />
                 ))}
                 {laneTodos.length === 0 && <p className="rounded-xl border border-dashed border-slate-300 px-3 py-6 text-center text-xs text-slate-500">وظیفه‌ای در این ستون نیست.</p>}
               </div>
@@ -224,6 +284,7 @@ export function TodoBoard() {
           );
         })}
       </div>
+      {currentUser && formOpen && <TodoFormDialog key={editingTodo?.id ?? "new-task"} open={formOpen} task={editingTodo} currentUser={currentUser} users={users} onClose={closeForm} onSaved={handleSaved} />}
     </section>
   );
 }
