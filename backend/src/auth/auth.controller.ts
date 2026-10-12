@@ -31,12 +31,6 @@ export class AuthController {
     private readonly configService: ConfigService,
   ) {}
 
-  //   @Post('register')
-  //   @HttpCode(HttpStatus.CREATED)
-  //   register(@Body(validationPipe) input: RegisterDto) {
-  //     return this.authService.register(input);
-  //   }
-
   @Post('login')
   @HttpCode(HttpStatus.OK)
   @Throttle({ default: { limit: 5, ttl: 60_000 } })
@@ -81,7 +75,7 @@ export class AuthController {
   ) {
     return request.user;
   }
-  
+
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
   async refresh(

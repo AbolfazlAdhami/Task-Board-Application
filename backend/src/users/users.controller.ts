@@ -27,6 +27,14 @@ type AuthenticatedRequest = {
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
+
+  @Get()
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(UserRole.OWNER, UserRole.MANAGER)
+  listUsers() {
+    return this.usersService.listUsers();
+  }
+
   @Post()
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles(UserRole.OWNER)
@@ -48,13 +56,6 @@ export class UsersController {
   ) {
     await this.usersService.changePassword(request.user.userId, dto);
     return { message: 'Password updated' };
-  }
-
-  @Get()
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles(UserRole.OWNER)
-  listUsers() {
-    return this.usersService.listUsers();
   }
 
   @Patch(':id')

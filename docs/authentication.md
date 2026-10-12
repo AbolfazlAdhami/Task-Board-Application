@@ -2,7 +2,15 @@
 
 ## Current implementation status
 
-Public registration is intentionally disabled. Initial users are created through the database seed script; additional users are created by an authenticated owner. Authentication and session handlers exist, but the current automated e2e suite only checks `GET /`; the security and cookie checks below are required verification work, not a claim that the full suite has passed.
+Public registration is intentionally disabled. Initial users are created through the database seed script; additional users are created by an authenticated owner. The API global prefix is `/api/v1`. Access cookies use `Path=/`; refresh cookies use `Path=/api/v1/auth` so the browser sends them to the refresh and logout endpoints.
+
+## Verification status (2026-10-12)
+
+- Backend build passed.
+- Unit tests passed: 3 suites, 5 tests. Coverage includes member task visibility, owner-only user updates, and rejecting an inactive user in the JWT strategy.
+- The e2e suite passed its single `GET /` smoke test. It does not yet exercise the auth endpoints through a signed-token HTTP flow.
+- HTTPie Desktop checks for auth, user, and task routes were reported complete by the developer; detailed response codes were not recorded in this document.
+- Lint passed with four warnings and no errors; see `backend-requirements-audit.md` for the warning list.
 
 ## Scope
 
