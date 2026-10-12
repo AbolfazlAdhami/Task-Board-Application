@@ -33,4 +33,8 @@ export const todosApi = {
     const response = await api.patch<Todo>(`/todos/${id}`, input);
     return response.data;
   },
+
+  async remove(id: string): Promise<void> {
+    await api.delete(`/todos/${id}`);
+  },
 };

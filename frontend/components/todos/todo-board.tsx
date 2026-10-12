@@ -1,6 +1,6 @@
 "use client";
 
-import { Listbox, ListboxButton, ListboxLabel, ListboxOption, ListboxOptions } from "@headlessui/react";
+import { Dialog, DialogBackdrop, DialogPanel, DialogTitle, Listbox, ListboxButton, ListboxLabel, ListboxOption, ListboxOptions, Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { authApi, type CurrentUser } from "../../lib/api/auth-api";
 import { todosApi, type Todo, type TodoStatus } from "../../lib/api/todos-api";
@@ -58,7 +58,7 @@ function FilterListbox({ label, value, options, onChange }: { label: string; val
   );
 }
 
-function TodoCard({ todo, assigneeName, onEdit, canDrag }: { todo: Todo; assigneeName: string; onEdit?: () => void; canDrag: boolean }) {
+function TodoCard({ todo, assigneeName, onEdit, canDrag, onDelete }: { todo: Todo; assigneeName: string; onEdit?: () => void; canDrag: boolean; onDelete?: () => void }) {
   const dueDate = todo.dueDate ? new Intl.DateTimeFormat("fa-IR", { dateStyle: "medium" }).format(new Date(`${todo.dueDate}T00:00:00`)) : null;
 
   const { ref, handleRef, isDragging } = useDraggable({
@@ -102,18 +102,33 @@ function TodoCard({ todo, assigneeName, onEdit, canDrag }: { todo: Todo; assigne
           </div>
         )}
       </dl>
-      {onEdit && (
-        <div className="mt-4 flex justify-end border-t border-slate-100 pt-3">
-          <button
-            type="button"
-            aria-label={`ویرایش ${todo.title}`}
-            onClick={onEdit}
-            className="rounded-lg px-3 py-2 text-sm font-semibold text-indigo-700 hover:bg-indigo-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
-          >
-            ویرایش
-          </button>
-        </div>
-      )}
+      <Menu as="div" className="relative">
+        <MenuButton type="button" aria-label={`عملیات وظیفهٔ ${todo.title}`} className="rounded-lg px-3 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
+          <span aria-hidden="true">⋯</span>
+        </MenuButton>
+
+        <MenuItems anchor="bottom end" className="z-30 mt-2 min-w-36 rounded-xl border border-slate-200 bg-white p-1 shadow-xl focus:outline-none">
+          {onEdit && (
+            <MenuItem>
+              {({ focus }) => (
+                <button type="button" onClick={onEdit} className={`w-full rounded-lg px-3 py-2 text-right text-sm ${focus ? "bg-slate-100" : ""}`}>
+                  ویرایش
+                </button>
+              )}
+            </MenuItem>
+          )}
+
+          {onDelete && (
+            <MenuItem>
+              {({ focus }) => (
+                <button type="button" onClick={onDelete} className={`w-full rounded-lg px-3 py-2 text-right text-sm text-rose-700 ${focus ? "bg-rose-50" : ""}`}>
+                  حذف
+                </button>
+              )}
+            </MenuItem>
+          )}
+        </MenuItems>
+      </Menu>
     </article>
   );
 }
@@ -130,6 +145,34 @@ export function TodoBoard() {
   const [editingTodo, setEditingTodo] = useState<Todo | null>(null);
   const [statusChangeError, setStatusChangeError] = useState("");
   const [statusChangePending, setStatusChangePending] = useState(false);
+  const [deletingTodo, setDeletingTodo] = useState<Todo | null>(null);
+  const [deletePending, setDeletePending] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
+
+  function canDeleteTodo(todo: Todo) {
+    if (!currentUser) return false;
+    if (currentUser.role !== "member") return true;
+
+    return todo.createdBy === currentUser.userId;
+  }
+
+  async function handleDeleteTodo() {
+    if (!deletingTodo || deletePending) return;
+
+    const target = deletingTodo;
+    setDeletePending(true);
+    setDeleteError("");
+
+    try {
+      await todosApi.remove(target.id);
+      setTodos((current) => current.filter((todo) => todo.id !== target.id));
+      setDeletingTodo(null);
+    } catch {
+      setDeleteError("حذف وظیفه انجام نشد؛ دوباره تلاش کن.");
+    } finally {
+      setDeletePending(false);
+    }
+  }
 
   function handleDragEnd(event: DragEndEvent) {
     if (event.canceled || currentUser?.role !== "owner" || statusChangePending) {
@@ -327,6 +370,14 @@ export function TodoBoard() {
                     canDrag={currentUser?.role === "owner" && !statusChangePending}
                     assigneeName={todo.assignedTo ? (userNames.get(todo.assignedTo) ?? (todo.assignedTo === currentUser?.userId ? "من" : "عضو تیم")) : "بدون مسئول"}
                     onEdit={canEditTodo(todo) ? () => openEditForm(todo) : undefined}
+                    onDelete={
+                      canDeleteTodo(todo)
+                        ? () => {
+                            setDeleteError("");
+                            setDeletingTodo(todo);
+                          }
+                        : undefined
+                    }
                   />
                 ))}
                 {laneTodos.length === 0 && <p className="rounded-xl border border-dashed border-slate-300 px-3 py-6 text-center text-xs text-slate-500">وظیفه‌ای در این ستون نیست.</p>}
@@ -340,6 +391,42 @@ export function TodoBoard() {
           {statusChangeError}
         </p>
       )}
+      <Dialog
+        open={deletingTodo !== null}
+        onClose={() => {
+          if (!deletePending) {
+            setDeletingTodo(null);
+            setDeleteError("");
+          }
+        }}
+        dir="rtl"
+        className="relative z-50"
+      >
+        <DialogBackdrop className="fixed inset-0 bg-slate-950/40" />
+        <div className="fixed inset-0 overflow-y-auto p-4">
+          <div className="flex min-h-full items-center justify-center">
+            <DialogPanel className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+              <DialogTitle className="text-lg font-bold text-slate-900">حذف وظیفه</DialogTitle>
+              <p className="mt-3 text-sm text-slate-600">«{deletingTodo?.title}» حذف شود؟</p>
+
+              {deleteError && (
+                <p role="alert" className="mt-3 text-sm text-rose-700">
+                  {deleteError}
+                </p>
+              )}
+
+              <div className="mt-6 flex justify-end gap-3">
+                <button type="button" disabled={deletePending} onClick={() => setDeletingTodo(null)} className="rounded-xl px-4 py-2 text-sm font-semibold text-slate-600">
+                  انصراف
+                </button>
+                <button type="button" disabled={deletePending} onClick={() => void handleDeleteTodo()} className="rounded-xl bg-rose-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">
+                  {deletePending ? "در حال حذف…" : "حذف"}
+                </button>
+              </div>
+            </DialogPanel>
+          </div>
+        </div>
+      </Dialog>
       {currentUser && formOpen && <TodoFormDialog key={editingTodo?.id ?? "new-task"} open={formOpen} task={editingTodo} currentUser={currentUser} users={users} onClose={closeForm} onSaved={handleSaved} />}
     </section>
   );
