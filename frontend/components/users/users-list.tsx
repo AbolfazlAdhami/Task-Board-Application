@@ -52,7 +52,7 @@ export function UsersList() {
 
   return (
     <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white">
-      <table className="w-full min-w-[640px] text-right text-sm">
+      <table className="w-full min-w-160 text-right text-sm">
         <caption className="sr-only">فهرست کاربران تیم</caption>
         <thead className="bg-slate-50 text-xs text-slate-500">
           <tr>

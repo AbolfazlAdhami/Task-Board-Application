@@ -1,12 +1,14 @@
 "use client";
 
 import { Listbox, ListboxButton, ListboxLabel, ListboxOption, ListboxOptions } from "@headlessui/react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { authApi, type CurrentUser } from "../../lib/api/auth-api";
 import { todosApi, type Todo, type TodoStatus } from "../../lib/api/todos-api";
 import { usersApi, type UserSummary } from "../../lib/api/users-api";
 import { TodoFormDialog } from "./todo-form-dialog";
 import { RichTextPreview } from "./rich-text-editor";
+
+import { DragDropProvider, useDraggable, useDroppable, type DragEndEvent } from "@dnd-kit/react";
 
 type StatusFilter = "all" | TodoStatus;
 
@@ -56,11 +58,28 @@ function FilterListbox({ label, value, options, onChange }: { label: string; val
   );
 }
 
-function TodoCard({ todo, assigneeName, onEdit }: { todo: Todo; assigneeName: string; onEdit?: () => void }) {
+function TodoCard({ todo, assigneeName, onEdit, canDrag }: { todo: Todo; assigneeName: string; onEdit?: () => void; canDrag: boolean }) {
   const dueDate = todo.dueDate ? new Intl.DateTimeFormat("fa-IR", { dateStyle: "medium" }).format(new Date(`${todo.dueDate}T00:00:00`)) : null;
+
+  const { ref, handleRef, isDragging } = useDraggable({
+    id: `todo:${todo.id}`,
+    data: { todoId: todo.id },
+    disabled: !canDrag,
+  });
   return (
-    <article aria-label={`وظیفه: ${todo.title}`} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+    <article ref={ref} aria-label={`وظیفه: ${todo.title}`} className={`rounded-2xl border border-slate-200 bg-white p-4 shadow-sm ${isDragging ? "opacity-60 ring-2 ring-indigo-400" : ""}`}>
       <div className="flex items-start justify-between gap-3">
+        {canDrag && (
+          <button
+            ref={handleRef}
+            type="button"
+            aria-label={`جابجایی وظیفهٔ ${todo.title}`}
+            title="شروع جابه‌جایی با Space یا Enter؛ لغو با Escape"
+            className="rounded-lg px-2 py-1 text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+          >
+            <span aria-hidden="true">⠿</span>
+          </button>
+        )}
         <h3 className="font-bold leading-7 text-slate-900">{todo.title}</h3>
         <span className="shrink-0 rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700">اولویت {priorityLabels[todo.priority]}</span>
       </div>
@@ -109,6 +128,45 @@ export function TodoBoard() {
   const [error, setError] = useState("");
   const [formOpen, setFormOpen] = useState(false);
   const [editingTodo, setEditingTodo] = useState<Todo | null>(null);
+  const [statusChangeError, setStatusChangeError] = useState("");
+  const [statusChangePending, setStatusChangePending] = useState(false);
+
+  function handleDragEnd(event: DragEndEvent) {
+    if (event.canceled || currentUser?.role !== "owner" || statusChangePending) {
+      return;
+    }
+
+    const todoId = event.operation.source?.data.todoId;
+    const nextStatus = event.operation.target?.data.status;
+
+    if (typeof todoId !== "string" || typeof nextStatus !== "string" || !columns.includes(nextStatus as TodoStatus)) {
+      return;
+    }
+
+    const existingTodo = todos.find((todo) => todo.id === todoId);
+    if (!existingTodo || existingTodo.status === nextStatus) return;
+
+    const previousStatus = existingTodo.status;
+    const updatedStatus = nextStatus as TodoStatus;
+
+    setStatusChangeError("");
+    setStatusChangePending(true);
+
+    // نمایش فوری جابه‌جایی در برد
+    setTodos((current) => current.map((todo) => (todo.id === todoId ? { ...todo, status: updatedStatus } : todo)));
+
+    void todosApi
+      .update(todoId, { status: updatedStatus })
+      .then((savedTodo) => {
+        setTodos((current) => current.map((todo) => (todo.id === savedTodo.id ? savedTodo : todo)));
+      })
+      .catch(() => {
+        // اگر ذخیره‌سازی شکست خورد، کارت را به وضعیت قبلی برگردان
+        setTodos((current) => current.map((todo) => (todo.id === todoId ? { ...todo, status: previousStatus } : todo)));
+        setStatusChangeError("تغییر وضعیت ذخیره نشد؛ دوباره تلاش کنید.");
+      })
+      .finally(() => setStatusChangePending(false));
+  }
 
   function handleSaved(saved: Todo) {
     setTodos((current) => (current.some((todo) => todo.id === saved.id) ? current.map((todo) => (todo.id === saved.id ? saved : todo)) : [saved, ...current]));
@@ -255,36 +313,54 @@ export function TodoBoard() {
           <FilterListbox label="فیلتر مسئول" value={assigneeFilter} onChange={setAssigneeFilter} options={assigneeOptions} />
         </div>
       </div>
+      <DragDropProvider onDragEnd={handleDragEnd}>
+        <div className="grid items-start gap-4 md:grid-cols-3">
+          {columns.map((status) => {
+            const laneTodos = filteredTodos.filter((todo) => todo.status === status);
 
-      <div className="grid items-start gap-4 md:grid-cols-3">
-        {columns.map((status) => {
-          const laneTodos = filteredTodos.filter((todo) => todo.status === status);
-
-          return (
-            <section key={status} aria-labelledby={`lane-${status}`} className="min-h-64 rounded-2xl bg-slate-100/80 p-3 sm:p-4">
-              <header className="mb-3 flex items-center justify-between px-1">
-                <h3 id={`lane-${status}`} className="font-bold text-slate-800">
-                  {statusLabels[status]}
-                </h3>
-                <span className="rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-slate-500">{laneTodos.length}</span>
-              </header>
-
-              <div className="space-y-3">
+            return (
+              <BoardLane key={status} status={status} count={laneTodos.length} canDrop={currentUser?.role === "owner"}>
                 {laneTodos.map((todo) => (
                   <TodoCard
                     key={todo.id}
                     todo={todo}
+                    canDrag={currentUser?.role === "owner" && !statusChangePending}
                     assigneeName={todo.assignedTo ? (userNames.get(todo.assignedTo) ?? (todo.assignedTo === currentUser?.userId ? "من" : "عضو تیم")) : "بدون مسئول"}
                     onEdit={canEditTodo(todo) ? () => openEditForm(todo) : undefined}
                   />
                 ))}
                 {laneTodos.length === 0 && <p className="rounded-xl border border-dashed border-slate-300 px-3 py-6 text-center text-xs text-slate-500">وظیفه‌ای در این ستون نیست.</p>}
-              </div>
-            </section>
-          );
-        })}
-      </div>
+              </BoardLane>
+            );
+          })}
+        </div>
+      </DragDropProvider>
+      {statusChangeError && (
+        <p role="alert" className="mb-4 rounded-xl bg-rose-50 p-3 text-sm text-rose-700">
+          {statusChangeError}
+        </p>
+      )}
       {currentUser && formOpen && <TodoFormDialog key={editingTodo?.id ?? "new-task"} open={formOpen} task={editingTodo} currentUser={currentUser} users={users} onClose={closeForm} onSaved={handleSaved} />}
+    </section>
+  );
+}
+
+function BoardLane({ status, count, canDrop, children }: { status: TodoStatus; count: number; canDrop: boolean; children: ReactNode }) {
+  const { ref, isDropTarget } = useDroppable({
+    id: `lane:${status}`,
+    data: { status },
+    disabled: !canDrop,
+  });
+
+  return (
+    <section ref={ref} aria-labelledby={`lane-${status}`} className={`min-h-64 rounded-2xl p-3 transition-colors sm:p-4 ${isDropTarget ? "bg-indigo-100 ring-2 ring-indigo-400" : "bg-slate-100/80"}`}>
+      <header className="mb-3 flex items-center justify-between px-1">
+        <h3 id={`lane-${status}`} className="font-bold text-slate-800">
+          {statusLabels[status]}
+        </h3>
+        <span className="rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-slate-500">{count}</span>
+      </header>
+      <div className="space-y-3">{children}</div>
     </section>
   );
 }
