@@ -157,7 +157,7 @@ export function TodoFormDialog({
             <div className="mb-6 flex items-start justify-between gap-4">
               <div>
                 <DialogTitle className="text-lg font-bold text-foreground">{task ? "ویرایش وظیفه" : "وظیفهٔ جدید"}</DialogTitle>
-                <p className="mt-1 text-xs text-muted">شرح به شکل سند TipTap ذخیره می‌شود.</p>
+                {/* <p className="mt-1 text-xs text-muted">شرح به شکل سند TipTap ذخیره می‌شود.</p> */}
               </div>
               <button
                 type="button"
