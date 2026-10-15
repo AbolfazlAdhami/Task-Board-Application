@@ -34,10 +34,10 @@ export class CreateTodoDto {
   @Matches(/^\d{4}-\d{2}-\d{2}$/)
   dueDate?: string | null;
 
-  @ValidateIf((_object, value) => value !== undefined)
+  @ValidateIf((_object, value) => value !== undefined && value !== null)
   @IsObject()
   @Validate(TiptapDocumentValidator)
-  description?: TiptapDocument;
+  description?: TiptapDocument | null;
 
   @ValidateIf((_object, value) => value !== undefined && value !== null)
   @IsUUID()

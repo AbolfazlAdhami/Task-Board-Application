@@ -1,4 +1,4 @@
-import { Logger, ValidationPipe } from '@nestjs/common';
+import { BadRequestException, Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import type { NextFunction, Request, Response } from 'express';
 import cookieParser from 'cookie-parser';
@@ -9,7 +9,9 @@ const httpLogger = new Logger('HTTP');
 const bootstrapLogger = new Logger('Bootstrap');
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    logger: ['log', 'error', 'warn', 'debug', 'verbose'],
+  });
 
   app.setGlobalPrefix('api/v1');
   app.use(cookieParser());
@@ -19,6 +21,23 @@ async function bootstrap() {
       whitelist: true,
       forbidNonWhitelisted: true,
       transform: true,
+
+      exceptionFactory: (errors) => {
+        console.error(
+          '[Validation Error]',
+          JSON.stringify(
+            errors.map(({ property, constraints, children }) => ({
+              property,
+              constraints,
+              children,
+            })),
+            null,
+            2,
+          ),
+        );
+
+        return new BadRequestException(errors);
+      },
     }),
   );
 

@@ -64,7 +64,6 @@ export class TodosService {
       createdBy: user.userId,
       assignedTo: dto.assignedTo ?? null,
     });
-
     return this.todosRepository.save(todo);
   }
 

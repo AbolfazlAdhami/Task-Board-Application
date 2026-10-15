@@ -16,17 +16,28 @@ function onlyKeys(value: JsonObject, allowed: string[]): boolean {
 @ValidatorConstraint({ name: 'isTiptapDocument', async: false })
 export class TiptapDocumentValidator implements ValidatorConstraintInterface {
   validate(value: unknown): boolean {
+    console.log(
+      '[Tiptap Validation] Received:',
+      JSON.stringify(value, null, 2),
+    );
+
     if (
       !isObject(value) ||
       value.type !== 'doc' ||
       !onlyKeys(value, ['type', 'content']) ||
       !Array.isArray(value.content)
     ) {
+      console.log('[Tiptap Validation] Invalid document root');
       return false;
     }
 
-    // Empty documents are valid.
-    return value.content.every((node) => this.isBlock(node, 0));
+    const valid = value.content.every((node) => this.isBlock(node, 0));
+
+    if (!valid) {
+      console.log('[Tiptap Validation] Invalid block node');
+    }
+
+    return valid;
   }
 
   defaultMessage(): string {
@@ -173,7 +184,7 @@ export class TiptapDocumentValidator implements ValidatorConstraintInterface {
         mark.type !== 'link' ||
         !onlyKeys(mark, ['type', 'attrs']) ||
         !isObject(mark.attrs) ||
-        !onlyKeys(mark.attrs, ['href', 'target', 'rel', 'class']) ||
+        !onlyKeys(mark.attrs, ['href', 'target', 'rel', 'class', 'title']) ||
         typeof mark.attrs.href !== 'string'
       ) {
         return false;
