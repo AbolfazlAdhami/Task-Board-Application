@@ -25,22 +25,20 @@ client.connect()
   .catch(() => process.exit(1));
 '; do
   if [ "$attempt" -ge "$max_attempts" ]; then
-    echo "ERROR: PostgreSQL was not reachable after $max_attempts attempts."
+    echo "ERROR: PostgreSQL is unavailable."
     exit 1
   fi
 
-  echo "PostgreSQL not ready ($attempt/$max_attempts). Retrying..."
+  echo "Database not ready; retrying ($attempt/$max_attempts)..."
   attempt=$((attempt + 1))
   sleep 2
 done
 
-echo "PostgreSQL is ready."
-
-echo "Running database migrations..."
+echo "Running TypeORM migrations..."
 npm run migration:run --workspace=backend
 
 echo "Seeding initial users..."
 npm run seed:users --workspace=backend
 
-echo "Starting NestJS..."
+echo "Starting backend..."
 exec node backend/dist/main.js
