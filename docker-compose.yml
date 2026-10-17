@@ -7,9 +7,63 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-task_board}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-local_dev_only}
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      - "127.0.0.1:5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB:-task_board}
+      POSTGRES_USER: ${POSTGRES_USER:-task_board}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-local_dev_only}
+      BACKEND_PORT: 3001
+      BACKEND_ORIGIN: ${BACKEND_ORIGIN:-http://localhost:3001}
+      FRONTEND_ORIGIN: ${FRONTEND_ORIGIN:-http://localhost:3000}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+      JWT_ACCESS_EXPIRES_IN: ${JWT_ACCESS_EXPIRES_IN:-15m}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN:-7d}
+      SEED_OWNER_EMAIL: ${SEED_OWNER_EMAIL}
+      SEED_OWNER_PASSWORD: ${SEED_OWNER_PASSWORD}
+      SEED_MANAGER_EMAIL: ${SEED_MANAGER_EMAIL}
+      SEED_MANAGER_PASSWORD: ${SEED_MANAGER_PASSWORD}
+      SEED_MEMBER_EMAIL: ${SEED_MEMBER_EMAIL}
+      SEED_MEMBER_PASSWORD: ${SEED_MEMBER_PASSWORD}
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      args:
+        BACKEND_ORIGIN: http://backend:3001
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      FRONTEND_PORT: 3000
+      BACKEND_ORIGIN: http://backend:3001
+    ports:
+      - "3002:3000"
+    depends_on:
+      - backend
 
 volumes:
   postgres_data:
