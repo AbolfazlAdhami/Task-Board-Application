@@ -61,7 +61,7 @@ services:
       FRONTEND_PORT: 3000
       BACKEND_ORIGIN: http://backend:3001
     ports:
-      - "3002:3000"
+      - "3000:3000"
     depends_on:
       - backend
 
