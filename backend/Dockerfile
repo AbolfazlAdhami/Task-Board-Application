@@ -7,13 +7,13 @@ COPY package.json package-lock.json ./
 COPY backend/package.json ./backend/package.json
 COPY frontend/package.json ./frontend/package.json
 
-# Include build tools and migration/seed dependencies.
+# TypeORM CLI, ts-node and build tools are needed
+# for the migration, seed and build commands.
 RUN npm ci --include=dev
 
 COPY . .
 
 RUN npm run build --workspace=backend
-
 RUN chmod +x backend/docker-entrypoint.sh
 
 ENV NODE_ENV=production

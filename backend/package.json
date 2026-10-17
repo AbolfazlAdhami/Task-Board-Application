@@ -13,10 +13,10 @@
     "lint": "oxlint --type-aware src/ test/",
     "test": "node --experimental-vm-modules ../node_modules/jest/bin/jest.js",
     "test:e2e": "node --experimental-vm-modules ../node_modules/jest/bin/jest.js --config ./test/jest-e2e.json",
+    "migration:run": "typeorm-ts-node-commonjs migration:run -d src/common/database/data-source.ts",
     "seed:users": "ts-node -r tsconfig-paths/register src/common/database/seeds/seed-users.ts",
     "migration:generate": "typeorm-ts-node-commonjs migration:generate",
     "migration:create": "typeorm-ts-node-commonjs migration:create",
-    "migration:run": "typeorm-ts-node-commonjs migration:run -d src/common/database/data-source.ts",
     "migration:revert": "typeorm-ts-node-commonjs migration:revert -d src/common/database/data-source.ts",
     "migration:show": "typeorm-ts-node-commonjs migration:show -d src/common/database/data-source.ts"
   },
