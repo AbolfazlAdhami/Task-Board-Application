@@ -15,11 +15,12 @@ const required = (name: string): string => {
 
 export default new DataSource({
   type: 'postgres',
-  host: process.env.POSTGRES_HOST ?? '127.0.0.1',
-  port: Number(process.env.POSTGRES_PORT ?? 5433),
-  username: required('POSTGRES_USER'),
-  password: required('POSTGRES_PASSWORD'),
-  database: required('POSTGRES_DB'),
+  url:process.env.DATABASE_URL||"postgresql://abolfazl:fWeQJZvTRg22uCC5JwAgHWzLjLO4NdAi@dpg-dbam5aajnfac7388l5i0-a.frankfurt-postgres.render.com/task_board_m5dr",
+  // host: process.env.POSTGRES_HOST ?? '127.0.0.1',
+  // port: Number(process.env.POSTGRES_PORT ?? 5433),
+  // username: required('POSTGRES_USER'),
+  // password: required('POSTGRES_PASSWORD'),
+  // database: required('POSTGRES_DB'),
   entities: [UserEntity, RefreshTokenEntity, TodoEntity],
   migrations: [__dirname + '/migrations/*{.ts,.js}'],
   synchronize: false,
